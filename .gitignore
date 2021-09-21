@@ -1,0 +1,11 @@
+# NPM
+node_modules
+
+# Artifacts
+.nyc_output
+coverage
+lib
+
+# Misc.
+npm-debug.log
+

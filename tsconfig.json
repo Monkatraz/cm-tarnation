@@ -1,0 +1,36 @@
+{
+  "compilerOptions": {
+    "module": "esnext",
+    "target": "esnext",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "skipLibCheck": true,
+
+    "allowJs": true,
+    "resolveJsonModule": true,
+    "useDefineForClassFields": true,
+    "experimentalDecorators": true,
+    "lib": ["ESNext", "DOM", "WebWorker"],
+
+    "importsNotUsedAsValues": "error",
+    "isolatedModules": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+
+    "sourceMap": true,
+
+    "baseUrl": "./",
+    "outDir": "./lib",
+    "declaration": true
+  },
+
+  "include": ["src/**/*"],
+
+  "typeAcquisition": {
+    "enable": true,
+    "disableFilenameBasedTypeAcquisition": true,
+    "exclude": []
+  },
+  "exclude": ["**/node_modules/**"]
+}
