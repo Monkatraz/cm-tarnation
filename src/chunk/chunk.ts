@@ -2,7 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-import { GrammarState } from "../grammar/state"
+import type { GrammarState } from "../grammar/state"
 import * as Token from "../token"
 import type { GrammarToken } from "../types"
 import type { ParseStack } from "./parsing"
