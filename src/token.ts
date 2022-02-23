@@ -4,6 +4,8 @@
 
 import type { GrammarToken, ParserAction } from "./types"
 
+// TODO: hold onto data views directly rather than storing the buffers
+
 /**
  * Creates an `ArrayBuffer` stored token. This is effectively a highly
  * efficient representation of a {@link GrammarToken}.
