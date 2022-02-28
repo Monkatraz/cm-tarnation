@@ -178,6 +178,7 @@ export function compileChunks(chunks: Chunk[], startStack?: ParseStack) {
 
   let stack = startStack ?? new ParseStack([])
   let shouldCloneStack = false
+  let length = 0
 
   for (let i = 0; i < chunks.length; i++) {
     const chunk = chunks[i]
@@ -197,10 +198,12 @@ export function compileChunks(chunks: Chunk[], startStack?: ParseStack) {
       shouldCloneStack = false
     }
 
-    chunkBuffers.push(new Uint32Array(tokens))
+    const buffer = new Uint32Array(tokens)
+    length += buffer.length
+    chunkBuffers.push(buffer)
   }
 
-  const buffer = concatUInt32Arrays(chunkBuffers)
+  const buffer = concatUInt32Arrays(chunkBuffers, length)
   const cursor = new ArrayBufferCursor(buffer, buffer.length)
   return cursor
 }

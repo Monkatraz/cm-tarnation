@@ -212,11 +212,20 @@ export function cloneNestedArray<T extends any[][]>(arr: T): T {
   return clone as T
 }
 
-/** Returns a completely concatenated `Uint32Array` from a list of arrays. */
-export function concatUInt32Arrays(arrays: Uint32Array[]) {
-  let total = 0
-  for (let i = 0; i < arrays.length; i++) {
-    total += arrays[i].length
+/**
+ * Returns a completely concatenated `Uint32Array` from a list of arrays.
+ *
+ * @param arrays - Arrays to concatenate.
+ * @param length - If you know the length of the final array, you can pass
+ *   it here to avoid having the function calculate it.
+ */
+export function concatUInt32Arrays(arrays: Uint32Array[], length?: number) {
+  let total = length ?? 0
+
+  if (!total) {
+    for (let i = 0; i < arrays.length; i++) {
+      total += arrays[i].length
+    }
   }
 
   const result = new Uint32Array(total)
