@@ -96,7 +96,7 @@ export class ChunkBuffer {
       right = new ChunkBuffer(this.chunks.slice(index + 1))
     }
 
-    if (left.last) (left.last = left.last.clone()).setTokens([])
+    if (left.last) left.last = left.last.clone(false)
 
     return { left, right }
   }

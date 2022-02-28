@@ -99,11 +99,17 @@ export class Chunk {
     }
   }
 
-  /** Returns a deep clone of the chunk. */
-  clone() {
+  /**
+   * Returns a deep clone of the chunk.
+   *
+   * @param withTokens - If false, the tokens will be omitted. Defaults to true.
+   */
+  clone(withTokens = true) {
     const chunk = new Chunk(this.pos, this.state.clone())
-    chunk.tokens = this.tokens.slice()
-    chunk._max = this._max
+    if (withTokens) {
+      chunk.tokens = this.tokens.slice()
+      chunk._max = this._max
+    }
     return chunk
   }
 
