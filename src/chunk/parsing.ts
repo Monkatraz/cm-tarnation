@@ -24,6 +24,86 @@ export class ParseStack {
     this.stack = cloneNestedArray(stack)
   }
 
+  /**
+   * Parses a {@link Chunk}, returning the parsed out {@link LezerToken}s.
+   * Mutates this {@link ParseStack}, and caches the resultant tokens and
+   * stack into the {@link Chunk} as well.
+   *
+   * @param chunk - The chunk to parse.
+   */
+  parse(chunk: Chunk) {
+    const buffers: Uint32Array[] = []
+    const tokens = chunk.tokens
+
+    for (let idx = 0; idx < tokens.length; idx++) {
+      const t = Token.read(tokens[idx], chunk.pos)
+
+      // avoiding destructuring here
+
+      const type = t[0]
+      const from = t[1]
+      const to = t[2]
+      const open = t[3]
+      const close = t[4]
+
+      // add open nodes to stack
+      // this doesn't affect the buffer at all, but now we can watch for
+      // when another node closes one of the open nodes we added
+      if (open) {
+        for (let i = 0; i < open.length; i++) {
+          this.push(open[i], from, 0)
+        }
+      }
+
+      // we don't want to push the actual token twice
+      let pushed = false
+
+      // pop close nodes from the stack, if they can be paired with an open node
+      if (close) {
+        for (let i = 0; i < close.length; i++) {
+          const id = close[i]
+          const idx = this.last(id)
+
+          if (idx !== null) {
+            // cut off anything past the closing element
+            // i.e. inside nodes won't persist outside their parent if they
+            // never closed before their parent did
+            this.close(idx)
+
+            // we need to push the token early
+            if (type && !pushed) {
+              emit(buffers, type, from, to, 4)
+              this.increment()
+              pushed = true
+            }
+
+            // finally pop the node
+            const s = this.pop()!
+            const node = s[0]
+            const pos = s[1]
+            const children = s[2]
+
+            emit(buffers, node, pos, to, children * 4 + 4)
+            this.increment()
+          }
+        }
+      }
+
+      // push the actual token to the buffer, if it hasn't been already
+      if (type && !pushed) {
+        emit(buffers, type, from, to, 4)
+        this.increment()
+      }
+    }
+
+    const result = concatUInt32Arrays(buffers)
+
+    // cache result
+    chunk.parsed = { tokens: result.buffer, stack: this.clone() }
+
+    return result.buffer
+  }
+
   /** Add a child to every element. */
   increment() {
     for (let idx = 0; idx < this.stack.length; idx++) {
@@ -67,87 +147,6 @@ export class ParseStack {
   clone() {
     return new ParseStack(this.stack)
   }
-}
-
-/**
- * Parses a {@link Chunk}, returning the parsed out {@link LezerToken}s.
- * Mutates the given {@link ParseStack}, and caches the resultant tokens and
- * stack into the {@link Chunk} as well.
- *
- * @param stack - The stack to use for parsing.
- * @param chunk - The chunk to parse.
- */
-export function parseChunk(stack: ParseStack, chunk: Chunk) {
-  const buffers: Uint32Array[] = []
-  const tokens = chunk.tokens
-
-  for (let idx = 0; idx < tokens.length; idx++) {
-    const t = Token.read(tokens[idx], chunk.pos)
-
-    // avoiding destructuring here
-
-    const type = t[0]
-    const from = t[1]
-    const to = t[2]
-    const open = t[3]
-    const close = t[4]
-
-    // add open nodes to stack
-    // this doesn't affect the buffer at all, but now we can watch for
-    // when another node closes one of the open nodes we added
-    if (open) {
-      for (let i = 0; i < open.length; i++) {
-        stack.push(open[i], from, 0)
-      }
-    }
-
-    // we don't want to push the actual token twice
-    let pushed = false
-
-    // pop close nodes from the stack, if they can be paired with an open node
-    if (close) {
-      for (let i = 0; i < close.length; i++) {
-        const id = close[i]
-        const idx = stack.last(id)
-
-        if (idx !== null) {
-          // cut off anything past the closing element
-          // i.e. inside nodes won't persist outside their parent if they
-          // never closed before their parent did
-          stack.close(idx)
-
-          // we need to push the token early
-          if (type && !pushed) {
-            emit(buffers, type, from, to, 4)
-            stack.increment()
-            pushed = true
-          }
-
-          // finally pop the node
-          const s = stack.pop()!
-          const node = s[0]
-          const pos = s[1]
-          const children = s[2]
-
-          emit(buffers, node, pos, to, children * 4 + 4)
-          stack.increment()
-        }
-      }
-    }
-
-    // push the actual token to the buffer, if it hasn't been already
-    if (type && !pushed) {
-      emit(buffers, type, from, to, 4)
-      stack.increment()
-    }
-  }
-
-  const result = concatUInt32Arrays(buffers)
-
-  // cache result
-  chunk.parsed = { tokens: result.buffer, stack: stack.clone() }
-
-  return result.buffer
 }
 
 /** Utility function needed because apparently `TypedArray.of` isn't in every browser. */
@@ -194,7 +193,7 @@ export function compileChunks(chunks: Chunk[], startStack?: ParseStack) {
     // parse chunk
     else {
       if (shouldCloneStack) stack = stack.clone()
-      tokens = parseChunk(stack, chunk)
+      tokens = stack.parse(chunk)
       shouldCloneStack = false
     }
 
