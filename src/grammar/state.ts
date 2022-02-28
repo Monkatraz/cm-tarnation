@@ -95,8 +95,13 @@ export class GrammarState {
 
 /** A stack of {@link GrammarStackElement}s used by a {@link Grammar}. */
 export class GrammarStack {
-  /** @param stack - The current stack. */
-  constructor(public stack: GrammarStackElement[] = []) {}
+  /** The current stack. */
+  declare readonly stack: GrammarStackElement[]
+
+  /** @param stack - The stack array to use. Will be shallow cloned. */
+  constructor(stack?: GrammarStackElement[]) {
+    this.stack = stack?.slice() ?? []
+  }
 
   /**
    * Pushes a new {@link GrammarStackElement}.
@@ -107,13 +112,13 @@ export class GrammarStack {
    *   this element off.
    */
   push(node: Node, rules: (Rule | State)[], end: Rule | State) {
-    this.stack = [...this.stack, { node, rules, end }]
+    this.stack.push({ node, rules, end })
   }
 
   /** Pops the last element on the stack. */
   pop() {
     if (this.stack.length === 0) throw new Error("Grammar stack underflow")
-    this.stack = this.stack.slice(0, -1)
+    return this.stack.pop()
   }
 
   /**
@@ -122,7 +127,7 @@ export class GrammarStack {
    * @param index - The index to remove elements at or beyond.
    */
   close(idx: number) {
-    this.stack = this.stack.slice(0, idx)
+    this.stack.splice(idx)
   }
 
   /**
