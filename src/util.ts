@@ -189,6 +189,13 @@ export function makeTopNode(name: string, data: Record<string, any>) {
  */
 export const EmbeddedParserProp = new NodeProp<string>()
 
+// structuredClone is very new
+declare global {
+  function structuredClone<T>(obj: T): T
+}
+
+export const HAS_STRUCTURED_CLONE = typeof structuredClone !== "undefined"
+
 /**
  * Clones any array of arrays. Doesn't clone anything in the nested arrays
  * beyond primitives.
@@ -196,6 +203,8 @@ export const EmbeddedParserProp = new NodeProp<string>()
  * @param arr - The nested array to clone.
  */
 export function cloneNestedArray<T extends any[][]>(arr: T): T {
+  if (HAS_STRUCTURED_CLONE) return structuredClone(arr)
+
   const clone = new Array(arr.length)
   for (let idx = 0; idx < arr.length; idx++) {
     clone[idx] = arr[idx].slice()
