@@ -49,14 +49,16 @@ export class Node {
   ) {
     if (!type) {
       if (!autocomplete) throw new Error("Node name/type is required")
-      type = createID(autocomplete)
+      type = typeof autocomplete === "string" ? createID(autocomplete) : createID()
     }
     if (emit === false) throw new Error("Node cannot be emitted")
 
     this.id = id
     this.name = type
 
-    if (autocomplete) this.autocomplete = autocomplete
+    if (autocomplete) {
+      this.autocomplete = typeof autocomplete === "string" ? autocomplete : type
+    }
 
     if (typeof emit !== "string") emit = type
 

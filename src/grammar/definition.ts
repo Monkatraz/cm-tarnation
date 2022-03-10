@@ -69,7 +69,7 @@ export interface Node {
   openedBy?: Arrayable<string>
   closedBy?: Arrayable<string>
   group?: Arrayable<string>
-  autocomplete?: string
+  autocomplete?: true | string
   fold?: boolean | "inside" | "past_first_line" | `offset(${number}, ${number})`
   indent?:
     | "flat"
