@@ -14,7 +14,7 @@ import {
 } from "@codemirror/language"
 import type { EditorState } from "@codemirror/state"
 import { NodeProp, NodePropSource, NodeType, SyntaxNode } from "@lezer/common"
-import { EmbeddedParserProp, re } from "./../util"
+import { createID, EmbeddedParserProp, re } from "./../util"
 import type * as DF from "./definition"
 
 /** Effectively a light wrapper around a CodeMirror `NodeType`. */
@@ -28,16 +28,35 @@ export class Node {
   /** The `NodeType` used by CodeMirror. */
   declare type: NodeType
 
+  /** The name of an autocomplete handler for this node, if any. */
+  declare autocomplete?: string
+
   /** @param id - The ID to assign to this node. */
   constructor(
     id: number,
-    { type, emit, tag, openedBy, closedBy, group, nest, fold, indent }: DF.Node
+    {
+      type,
+      emit,
+      tag,
+      openedBy,
+      closedBy,
+      group,
+      nest,
+      fold,
+      indent,
+      autocomplete
+    }: DF.Node
   ) {
-    if (!type) throw new Error("Node name/type is required")
+    if (!type) {
+      if (!autocomplete) throw new Error("Node name/type is required")
+      type = createID(autocomplete)
+    }
     if (emit === false) throw new Error("Node cannot be emitted")
 
     this.id = id
     this.name = type
+
+    if (autocomplete) this.autocomplete = autocomplete
 
     if (typeof emit !== "string") emit = type
 

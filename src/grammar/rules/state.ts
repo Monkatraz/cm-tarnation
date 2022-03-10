@@ -43,7 +43,7 @@ export class State {
    */
   constructor(repo: Repository, state: DF.State) {
     let type = state.type ?? createID()
-    let emit = state.type && state.emit !== false
+    let emit = (state.type && state.emit !== false) || state.autocomplete
 
     // states handle nesting differently, so we don't want
     // to use the normal nesting behavior

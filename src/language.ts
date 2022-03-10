@@ -6,6 +6,7 @@ import { Language, LanguageDescription, LanguageSupport } from "@codemirror/lang
 import type { Extension, Facet } from "@codemirror/state"
 import { NodeProp, NodeSet, NodeType } from "@lezer/common"
 import type { ChunkBuffer } from "./chunk/buffer"
+import { Autocompleter } from "./completion/autcomplete"
 import type * as DF from "./grammar/definition"
 import { Grammar } from "./grammar/grammar"
 import { ParserFactory } from "./parser"
@@ -27,6 +28,7 @@ export class TarnationLanguage {
   declare nodeTypes?: NodeType[]
   declare nodeSet?: NodeSet
   declare stateProp?: NodeProp<ChunkBuffer>
+  declare autcompleter?: Autocompleter
   declare support?: LanguageSupport
   declare language?: Language
 
@@ -87,6 +89,11 @@ export class TarnationLanguage {
 
     this.nodeTypes = nodeTypes
     this.nodeSet = nodeSet
+
+    if (this.configure.autocomplete) {
+      this.autcompleter = new Autocompleter(this)
+      this.languageData.autocomplete = this.autcompleter.handle.bind(this.autcompleter)
+    }
 
     // setup language support
     this.language = new Language(facet, new ParserFactory(this), top)

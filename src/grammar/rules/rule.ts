@@ -55,7 +55,7 @@ export abstract class Rule {
    */
   constructor(repo: Repository, rule: DF.Rule) {
     let type = rule.type ?? createID()
-    let emit = rule.type && rule.emit !== false
+    let emit = (rule.type && rule.emit !== false) || rule.autocomplete
 
     this.name = type
     this.node = !emit ? Node.None : new Node(repo.id(), rule)

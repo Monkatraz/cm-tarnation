@@ -2,13 +2,16 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
+import type { CompletionSource } from "@codemirror/autocomplete"
 import type { LanguageDescription } from "@codemirror/language"
 import type { Extension, Facet } from "@codemirror/state"
 import type { Input, NodePropSource, TreeCursor } from "@lezer/common"
+import type { TarnationCompletionContext } from "./completion/context"
 import type { Grammar } from "./grammar/definition"
 import type { Node } from "./grammar/node"
 import type { Rule } from "./grammar/rules/rule"
 import type { State } from "./grammar/rules/state"
+import type { TarnationLanguage } from "./language"
 
 // -- CONFIGURATION
 
@@ -34,6 +37,8 @@ export interface ParserConfiguration {
     cursor: TreeCursor,
     input: Input
   ) => null | { name: string; overlay?: { from: number; to: number }[] }
+
+  autocomplete?: Record<string, AutocompleteHandler>
 }
 
 /** The options / interface required to create a Tarnation language. */
@@ -70,6 +75,11 @@ export interface TarnationLanguageDefinition {
   /** Extra extensions to be loaded. */
   supportExtensions?: Extension[]
 }
+
+export type AutocompleteHandler = (
+  this: TarnationLanguage,
+  context: TarnationCompletionContext
+) => ReturnType<CompletionSource>
 
 // -- GRAMMAR
 
