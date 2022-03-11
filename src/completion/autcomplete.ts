@@ -5,7 +5,7 @@
 import type { CompletionContext } from "@codemirror/autocomplete"
 import { ensureSyntaxTree } from "@codemirror/language"
 import type { SyntaxNode } from "@lezer/common"
-import { NodeTypeProp } from "../grammar/node"
+import { Node, NodeTypeProp } from "../grammar/node"
 import type { TarnationLanguage } from "../language"
 import type { AutocompleteHandler } from "../types"
 import { TarnationCompletionContext } from "./context"
@@ -15,9 +15,17 @@ export class Autocompleter {
 
   constructor(public language: TarnationLanguage) {
     if (this.language.configure.autocomplete) {
-      for (const name in this.language.configure.autocomplete) {
-        const handler = this.language.configure.autocomplete[name]
-        this.handlers.set(name, handler)
+      for (const key in this.language.configure.autocomplete) {
+        if (key === "*" || key === "_alsoTypeNames" || key === "_alsoEmitNames") continue
+        const names = key.trim().split(/\s+/)
+        const handler = this.language.configure.autocomplete[key] as AutocompleteHandler
+        for (const name of names) this.handlers.set(name, handler)
+      }
+
+      for (const node of this.language.grammar!.repository!.nodes()) {
+        if (node.autocomplete && !this.handlers.has(node.autocomplete)) {
+          console.warn(`No autocomplete handler for ${node.autocomplete}`)
+        }
       }
     }
   }
@@ -26,6 +34,30 @@ export class Autocompleter {
     if (!handler) return null
     if (!this.handlers.has(handler)) return null
     return this.handlers.get(handler)!
+  }
+
+  private getHandlerFor(type: Node | null | undefined) {
+    if (!type) return null
+
+    let handler: AutocompleteHandler | null = null
+
+    if (type.autocomplete) {
+      handler = this.get(type.autocomplete)
+    }
+
+    if (!handler && this.language.configure.autocomplete!._alsoTypeNames) {
+      handler = this.get(type.name)
+    }
+
+    if (!handler && this.language.configure.autocomplete!._alsoEmitNames) {
+      handler = this.get(type.type.name)
+    }
+
+    if (!handler && this.language.configure.autocomplete!["*"]) {
+      handler = this.language.configure.autocomplete!["*"]
+    }
+
+    return handler
   }
 
   handle(context: CompletionContext) {
@@ -37,7 +69,7 @@ export class Autocompleter {
 
     const node: SyntaxNode = tree.resolve(pos, -1)
     const type = node?.type.prop(NodeTypeProp)
-    const handler = this.get(type?.autocomplete) ?? this.get("*")
+    const handler = this.getHandlerFor(type)
 
     if (!node || !type || !handler) return null
 

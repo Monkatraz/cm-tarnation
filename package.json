@@ -20,7 +20,7 @@
   },
   "type": "module",
   "main": "lib/index.js",
-  "types": "lib/index.d.ts",
+  "types": "src/index.ts",
   "files": [
     "lib/**/*",
     "src/**/*"

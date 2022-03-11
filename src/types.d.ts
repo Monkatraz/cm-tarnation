@@ -40,11 +40,28 @@ export interface ParserConfiguration {
 
   /**
    * Autocompletion source functions. The key is name of the autocomplete
-   * handler as given by the grammar definition. The value is a function
-   * that takes a completion context and returns a completion source. There
-   * is a special key `"*"` that can be used to provide a fallback source.
+   * handler as given by the grammar definition. A key name can also be a
+   * whitespace separated list of autocomplete handler names.
+   *
+   * The value is a function that takes a completion context and returns a
+   * completion source.
+   *
+   * There are a few special keys, which can be used to provide
+   * configuration for the autocompletion. This is why the index signature
+   * has `boolean`, when it shouldn't. This is a TypeScript limitation.
    */
-  autocomplete?: Record<string, AutocompleteHandler>
+  autocomplete?: {
+    /** If true, you can use the grammar type names as autocompletion handlers. */
+    _alsoTypeNames?: boolean
+
+    /** If true, you can use the emitted names of nodes as autocompletion handlers. */
+    _alsoEmitNames?: boolean
+
+    /** Default autocompletion handler if nothing else can used. */
+    "*"?: AutocompleteHandler
+
+    [key: string]: AutocompleteHandler | boolean
+  }
 }
 
 /** The options / interface required to create a Tarnation language. */

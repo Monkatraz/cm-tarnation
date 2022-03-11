@@ -12,25 +12,30 @@ export class TarnationCompletionContext extends CompletionContext {
   declare tree: Tree
   declare node: SyntaxNode
 
+  private _around?: SyntaxNode | null
+  private _text?: string
+
   static mutate(context: CompletionContext, type: Node, tree: Tree, node: SyntaxNode) {
-    if (Object.getPrototypeOf(context) === this) {
+    if (Object.getPrototypeOf(context) === this.prototype) {
       return context as TarnationCompletionContext
     }
 
-    const mutated: TarnationCompletionContext = Object.setPrototypeOf(context, this)
+    const mutated = Object.setPrototypeOf(context, this.prototype)
 
     mutated.handler = type.autocomplete ?? "*"
     mutated.type = type
     mutated.tree = tree
     mutated.node = node
 
-    return mutated
+    return mutated as TarnationCompletionContext
   }
 
   get around() {
-    const node = this.tree.resolve(this.pos, -1)
+    if (this._around !== undefined) return this._around
+    const node = this.tree.resolve(this.pos)
     if (!node) return null
-    return node
+    this._around = node
+    return node as SyntaxNode
   }
 
   get aroundType() {
@@ -46,7 +51,10 @@ export class TarnationCompletionContext extends CompletionContext {
   }
 
   get text() {
-    return this.state.sliceDoc(this.node.from, this.node.to)
+    if (this._text !== undefined) return this._text
+    const result = this.state.sliceDoc(this.node.from, this.node.to)
+    this._text = result
+    return result
   }
 
   grammarType(node: SyntaxNode | null | undefined) {
@@ -87,7 +95,11 @@ export class TarnationCompletionContext extends CompletionContext {
     return null
   }
 
-  parent(level = 1) {
+  parent(parent: string | string[], max?: number) {
+    return this.findParentOf(this.node, parent, max)
+  }
+
+  parents(level = 1) {
     if (level <= 0) return null
     const parents = this.parentsOf(this.node, level)
     return parents[parents.length - 1] ?? null

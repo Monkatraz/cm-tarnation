@@ -28,7 +28,7 @@ export class TarnationLanguage {
   declare nodeTypes?: NodeType[]
   declare nodeSet?: NodeSet
   declare stateProp?: NodeProp<ChunkBuffer>
-  declare autcompleter?: Autocompleter
+  declare autocompleter?: Autocompleter
   declare support?: LanguageSupport
   declare language?: Language
 
@@ -91,8 +91,8 @@ export class TarnationLanguage {
     this.nodeSet = nodeSet
 
     if (this.configure.autocomplete) {
-      this.autcompleter = new Autocompleter(this)
-      this.languageData.autocomplete = this.autcompleter.handle.bind(this.autcompleter)
+      this.autocompleter = new Autocompleter(this)
+      this.languageData.autocomplete = this.autocompleter.handle.bind(this.autocompleter)
     }
 
     // setup language support
