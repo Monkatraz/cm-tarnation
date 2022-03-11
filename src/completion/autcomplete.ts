@@ -5,29 +5,27 @@
 import type { CompletionContext } from "@codemirror/autocomplete"
 import { ensureSyntaxTree } from "@codemirror/language"
 import type { SyntaxNode } from "@lezer/common"
-import type { Node } from "../grammar/node"
+import { NodeTypeProp } from "../grammar/node"
 import type { TarnationLanguage } from "../language"
 import type { AutocompleteHandler } from "../types"
 import { mutate } from "./context"
 
 export class Autocompleter {
-  typeMap = new Map<number, Node>()
   handlers = new Map<string, AutocompleteHandler>()
 
   constructor(public language: TarnationLanguage) {
-    for (const type of this.language.grammar!.repository.nodes()) {
-      this.typeMap.set(type.id, type)
-      if (
-        this.language.configure.autocomplete &&
-        type.autocomplete &&
-        type.autocomplete in this.language.configure.autocomplete
-      ) {
-        this.handlers.set(
-          type.autocomplete,
-          this.language.configure.autocomplete[type.autocomplete]
-        )
+    if (this.language.configure.autocomplete) {
+      for (const name in this.language.configure.autocomplete) {
+        const handler = this.language.configure.autocomplete[name]
+        this.handlers.set(name, handler)
       }
     }
+  }
+
+  private get(handler: string | null | undefined) {
+    if (!handler) return null
+    if (!this.handlers.has(handler)) return null
+    return this.handlers.get(handler)!
   }
 
   handle(context: CompletionContext) {
@@ -38,13 +36,11 @@ export class Autocompleter {
     if (!tree) return null
 
     const node: SyntaxNode = tree.resolve(pos)
-    if (!node || !this.typeMap.has(node.type.id)) return null
+    const type = node?.type.prop(NodeTypeProp)
+    const handler = this.get(type?.autocomplete)
 
-    const type = this.typeMap.get(node.type.id)!
-    if (!type.autocomplete || !this.handlers.has(type.autocomplete)) return null
+    if (!node || !type || !handler) return null
 
-    const mutated = mutate(context, type.autocomplete, tree, node)
-
-    return this.handlers.get(type.autocomplete)!.call(this.language, mutated)
+    return handler.call(this.language, mutate(context, type, tree, node))
   }
 }

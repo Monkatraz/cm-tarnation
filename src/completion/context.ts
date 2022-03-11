@@ -61,16 +61,22 @@ export class TarnationCompletionContext extends CompletionContext {
 
 export function mutate(
   context: CompletionContext,
-  handler: string,
+  type: Node,
   tree: Tree,
   node: SyntaxNode
 ) {
+  if (
+    Object.getPrototypeOf(context) === Object.getPrototypeOf(TarnationCompletionContext)
+  ) {
+    return context as TarnationCompletionContext
+  }
+
   const mutated: TarnationCompletionContext = Object.setPrototypeOf(
     context,
-    TarnationCompletionContext.prototype
+    Object.getPrototypeOf(TarnationCompletionContext)
   )
 
-  mutated.handler = handler
+  mutated.handler = type.autocomplete!
   mutated.tree = tree
   mutated.node = node
 

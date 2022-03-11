@@ -17,6 +17,8 @@ import { NodeProp, NodePropSource, NodeType, SyntaxNode } from "@lezer/common"
 import { createID, EmbeddedParserProp, re } from "./../util"
 import type * as DF from "./definition"
 
+export const NodeTypeProp = new NodeProp<Node>()
+
 /** Effectively a light wrapper around a CodeMirror `NodeType`. */
 export class Node {
   /** The unique ID for this node. */
@@ -48,8 +50,10 @@ export class Node {
     }: DF.Node
   ) {
     if (!type) {
-      if (!autocomplete) throw new Error("Node name/type is required")
-      type = typeof autocomplete === "string" ? createID(autocomplete) : createID()
+      if (!autocomplete || typeof autocomplete === "boolean") {
+        throw new Error("Node name/type is required")
+      }
+      type = createID(autocomplete)
     }
     if (emit === false) throw new Error("Node cannot be emitted")
 
@@ -57,12 +61,15 @@ export class Node {
     this.name = type
 
     if (autocomplete) {
-      this.autocomplete = typeof autocomplete === "string" ? autocomplete : type
+      if (typeof autocomplete === "boolean") autocomplete = type
+      this.autocomplete = autocomplete
     }
 
     if (typeof emit !== "string") emit = type
 
     const props: NodePropSource[] = []
+
+    props.push(NodeTypeProp.add({ [emit]: this }))
 
     // prettier-ignore
     {
