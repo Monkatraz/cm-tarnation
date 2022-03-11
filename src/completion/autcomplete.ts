@@ -8,7 +8,7 @@ import type { SyntaxNode } from "@lezer/common"
 import { NodeTypeProp } from "../grammar/node"
 import type { TarnationLanguage } from "../language"
 import type { AutocompleteHandler } from "../types"
-import { mutate } from "./context"
+import { TarnationCompletionContext } from "./context"
 
 export class Autocompleter {
   handlers = new Map<string, AutocompleteHandler>()
@@ -29,18 +29,20 @@ export class Autocompleter {
   }
 
   handle(context: CompletionContext) {
-    if (!this.handlers.keys.length) return null
+    if (!this.handlers.size) return null
 
     const { state, pos } = context
     const tree = ensureSyntaxTree(state, pos)
     if (!tree) return null
 
-    const node: SyntaxNode = tree.resolve(pos)
+    const node: SyntaxNode = tree.resolve(pos, -1)
     const type = node?.type.prop(NodeTypeProp)
-    const handler = this.get(type?.autocomplete)
+    const handler = this.get(type?.autocomplete) ?? this.get("*")
 
     if (!node || !type || !handler) return null
 
-    return handler.call(this.language, mutate(context, type, tree, node))
+    const mutated = TarnationCompletionContext.mutate(context, type, tree, node)
+
+    return handler.call(this.language, mutated)
   }
 }

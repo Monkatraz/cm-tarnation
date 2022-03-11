@@ -38,6 +38,12 @@ export interface ParserConfiguration {
     input: Input
   ) => null | { name: string; overlay?: { from: number; to: number }[] }
 
+  /**
+   * Autocompletion source functions. The key is name of the autocomplete
+   * handler as given by the grammar definition. The value is a function
+   * that takes a completion context and returns a completion source. There
+   * is a special key `"*"` that can be used to provide a fallback source.
+   */
   autocomplete?: Record<string, AutocompleteHandler>
 }
 

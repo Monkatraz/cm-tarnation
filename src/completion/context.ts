@@ -4,25 +4,62 @@
 
 import { CompletionContext } from "@codemirror/autocomplete"
 import type { SyntaxNode, Tree } from "@lezer/common"
-import type { Node } from "../grammar/node"
+import { Node, NodeTypeProp } from "../grammar/node"
 
 export class TarnationCompletionContext extends CompletionContext {
   declare handler: string
+  declare type: Node
   declare tree: Tree
   declare node: SyntaxNode
-  declare map: Map<number, Node>
 
-  type(node: SyntaxNode | null | undefined) {
-    if (!node || !this.map.has(node.type.id)) return null
-    return this.map.get(node.type.id)!
+  static mutate(context: CompletionContext, type: Node, tree: Tree, node: SyntaxNode) {
+    if (Object.getPrototypeOf(context) === this) {
+      return context as TarnationCompletionContext
+    }
+
+    const mutated: TarnationCompletionContext = Object.setPrototypeOf(context, this)
+
+    mutated.handler = type.autocomplete ?? "*"
+    mutated.type = type
+    mutated.tree = tree
+    mutated.node = node
+
+    return mutated
   }
 
-  text(node: SyntaxNode | null | undefined) {
+  get around() {
+    const node = this.tree.resolve(this.pos, -1)
+    if (!node) return null
+    return node
+  }
+
+  get aroundType() {
+    return this.grammarType(this.around)
+  }
+
+  get from() {
+    return this.node.from
+  }
+
+  get to() {
+    return this.node.to
+  }
+
+  get text() {
+    return this.state.sliceDoc(this.node.from, this.node.to)
+  }
+
+  grammarType(node: SyntaxNode | null | undefined) {
+    const type = node?.type.prop(NodeTypeProp)
+    return type ?? null
+  }
+
+  textOf(node: SyntaxNode | null | undefined) {
     if (!node) return null
     return this.state.sliceDoc(node.from, node.to)
   }
 
-  parents(node: SyntaxNode | null | undefined, max?: number) {
+  parentsOf(node: SyntaxNode | null | undefined, max?: number) {
     if (!node) return []
     const parents: SyntaxNode[] = []
     let dist = 0
@@ -34,7 +71,7 @@ export class TarnationCompletionContext extends CompletionContext {
     return parents
   }
 
-  findParent(
+  findParentOf(
     node: SyntaxNode | null | undefined,
     parent: string | string[],
     max?: number
@@ -50,6 +87,12 @@ export class TarnationCompletionContext extends CompletionContext {
     return null
   }
 
+  parent(level = 1) {
+    if (level <= 0) return null
+    const parents = this.parentsOf(this.node, level)
+    return parents[parents.length - 1] ?? null
+  }
+
   isInbetween(left: string, right = left) {
     const leftNode = this.tree.resolve(this.pos, 1)
     const rightNode = this.tree.resolve(this.pos, -1)
@@ -57,28 +100,4 @@ export class TarnationCompletionContext extends CompletionContext {
     if (leftNode.name !== left || rightNode.name !== right) return false
     return true
   }
-}
-
-export function mutate(
-  context: CompletionContext,
-  type: Node,
-  tree: Tree,
-  node: SyntaxNode
-) {
-  if (
-    Object.getPrototypeOf(context) === Object.getPrototypeOf(TarnationCompletionContext)
-  ) {
-    return context as TarnationCompletionContext
-  }
-
-  const mutated: TarnationCompletionContext = Object.setPrototypeOf(
-    context,
-    Object.getPrototypeOf(TarnationCompletionContext)
-  )
-
-  mutated.handler = type.autocomplete!
-  mutated.tree = tree
-  mutated.node = node
-
-  return mutated
 }
