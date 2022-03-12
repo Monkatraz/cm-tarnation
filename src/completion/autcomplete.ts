@@ -54,24 +54,31 @@ export class Autocompleter {
   private traverse(
     node: SyntaxNode | null | undefined,
     root = true
-  ): { type: Node | null; handler: AutocompleteHandler | null; traversed: boolean } {
-    if (!node) return { type: null, handler: null, traversed: false }
+  ): {
+    node: SyntaxNode | null
+    type: Node | null
+    handler: AutocompleteHandler | null
+    traversed: boolean
+  } {
+    if (!node) return { node: null, type: null, handler: null, traversed: false }
 
-    let type = node?.type.prop(NodeTypeProp) ?? null
-    let handler = this.getHandlerFor(type)
-    let traversed = false
+    const type = node?.type.prop(NodeTypeProp) ?? null
+    const handler = this.getHandlerFor(type)
 
-    if (this.config._traverseUpwards && !type && !handler && node.parent) {
-      ;({ type, handler } = this.traverse(node.parent, false))
-      if (type && handler) traversed = true
+    if (!type || !handler) {
+      if (this.config._traverseUpwards && node.parent) {
+        const { node: child, type, handler } = this.traverse(node.parent, false)
+        if (child && type && handler) {
+          return { node: child, type, handler, traversed: true }
+        }
+      }
+
+      if (root && this.config["*"]) {
+        return { node, type, handler: this.config["*"], traversed: false }
+      }
     }
 
-    if (!handler && root && this.config["*"]) {
-      type = node?.type.prop(NodeTypeProp) ?? null
-      handler = this.config["*"]
-    }
-
-    return { type, handler, traversed }
+    return { node, type, handler, traversed: false }
   }
 
   handle(context: CompletionContext) {
@@ -80,8 +87,8 @@ export class Autocompleter {
     const tree = ensureSyntaxTree(context.state, context.pos)
     if (!tree) return null
 
-    const node: SyntaxNode = tree.resolve(context.pos, -1)
-    const { type, handler, traversed } = this.traverse(node)
+    const current = tree.resolve(context.pos, -1)
+    const { node, type, handler, traversed } = this.traverse(current)
 
     if (!node || !type || !handler) return null
 

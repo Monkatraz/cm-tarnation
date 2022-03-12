@@ -7,7 +7,6 @@ import type { SyntaxNode, Tree } from "@lezer/common"
 import { Node, NodeTypeProp } from "../grammar/node"
 
 export class TarnationCompletionContext extends CompletionContext {
-  declare handler: string
   declare type: Node
   declare tree: Tree
   declare node: SyntaxNode
@@ -29,10 +28,10 @@ export class TarnationCompletionContext extends CompletionContext {
 
     const mutated = Object.setPrototypeOf(context, this.prototype)
 
-    mutated.handler = type.autocomplete ?? "*"
     mutated.type = type
     mutated.tree = tree
     mutated.node = node
+    mutated.traversed = traversed
 
     return mutated as TarnationCompletionContext
   }
