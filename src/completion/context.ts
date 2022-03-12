@@ -11,11 +11,18 @@ export class TarnationCompletionContext extends CompletionContext {
   declare type: Node
   declare tree: Tree
   declare node: SyntaxNode
+  declare traversed: boolean
 
   private _around?: SyntaxNode | null
   private _text?: string
 
-  static mutate(context: CompletionContext, type: Node, tree: Tree, node: SyntaxNode) {
+  static mutate(
+    context: CompletionContext,
+    type: Node,
+    tree: Tree,
+    node: SyntaxNode,
+    traversed: boolean
+  ) {
     if (Object.getPrototypeOf(context) === this.prototype) {
       return context as TarnationCompletionContext
     }

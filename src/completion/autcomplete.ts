@@ -54,14 +54,16 @@ export class Autocompleter {
   private traverse(
     node: SyntaxNode | null | undefined,
     root = true
-  ): { type: Node | null; handler: AutocompleteHandler | null } {
-    if (!node) return { type: null, handler: null }
+  ): { type: Node | null; handler: AutocompleteHandler | null; traversed: boolean } {
+    if (!node) return { type: null, handler: null, traversed: false }
 
     let type = node?.type.prop(NodeTypeProp) ?? null
     let handler = this.getHandlerFor(type)
+    let traversed = false
 
     if (this.config._traverseUpwards && !type && !handler && node.parent) {
       ;({ type, handler } = this.traverse(node.parent, false))
+      if (type && handler) traversed = true
     }
 
     if (!handler && root && this.config["*"]) {
@@ -69,7 +71,7 @@ export class Autocompleter {
       handler = this.config["*"]
     }
 
-    return { type, handler }
+    return { type, handler, traversed }
   }
 
   handle(context: CompletionContext) {
@@ -79,11 +81,17 @@ export class Autocompleter {
     if (!tree) return null
 
     const node: SyntaxNode = tree.resolve(context.pos, -1)
-    const { type, handler } = this.traverse(node)
+    const { type, handler, traversed } = this.traverse(node)
 
     if (!node || !type || !handler) return null
 
-    const mutated = TarnationCompletionContext.mutate(context, type, tree, node)
+    const mutated = TarnationCompletionContext.mutate(
+      context,
+      type,
+      tree,
+      node,
+      traversed
+    )
 
     return handler.call(this.language, mutated)
   }
