@@ -22,7 +22,7 @@
 
     "baseUrl": "./",
     "outDir": "./lib",
-    "declaration": false
+    "declaration": true
   },
 
   "include": ["src/**/*"],

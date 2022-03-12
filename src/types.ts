@@ -66,7 +66,7 @@ export interface ParserConfiguration {
     /** Default autocompletion handler if nothing else can used. */
     "*"?: AutocompleteHandler
 
-    [key: string]: AutocompleteHandler | boolean
+    [key: string]: AutocompleteHandler | boolean | undefined
   }
 }
 
