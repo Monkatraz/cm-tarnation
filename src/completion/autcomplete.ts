@@ -15,11 +15,10 @@ export class Autocompleter {
 
   constructor(public language: TarnationLanguage) {
     if (this.language.configure.autocomplete) {
-      for (const key in this.language.configure.autocomplete) {
-        if (key === "*" || key === "_alsoTypeNames" || key === "_alsoEmitNames") continue
-        const names = key.trim().split(/\s+/)
-        const handler = this.language.configure.autocomplete[key] as AutocompleteHandler
-        for (const name of names) this.handlers.set(name, handler)
+      for (const key in this.config) {
+        const handler = this.config[key]
+        if (key === "*" || typeof handler !== "function") continue
+        for (const name of key.trim().split(/\s+/)) this.handlers.set(name, handler)
       }
 
       for (const node of this.language.grammar!.repository!.nodes()) {
@@ -28,6 +27,10 @@ export class Autocompleter {
         }
       }
     }
+  }
+
+  get config() {
+    return this.language.configure.autocomplete!
   }
 
   private get(handler: string | null | undefined) {
@@ -41,35 +44,42 @@ export class Autocompleter {
 
     let handler: AutocompleteHandler | null = null
 
-    if (type.autocomplete) {
-      handler = this.get(type.autocomplete)
-    }
-
-    if (!handler && this.language.configure.autocomplete!._alsoTypeNames) {
-      handler = this.get(type.name)
-    }
-
-    if (!handler && this.language.configure.autocomplete!._alsoEmitNames) {
-      handler = this.get(type.type.name)
-    }
-
-    if (!handler && this.language.configure.autocomplete!["*"]) {
-      handler = this.language.configure.autocomplete!["*"]
-    }
+    if (type.autocomplete) handler = this.get(type.autocomplete)
+    if (!handler && this.config._alsoTypeNames) handler = this.get(type.name)
+    if (!handler && this.config._alsoEmitNames) handler = this.get(type.type.name)
 
     return handler
+  }
+
+  private traverse(
+    node: SyntaxNode | null | undefined,
+    root = true
+  ): { type: Node | null; handler: AutocompleteHandler | null } {
+    if (!node) return { type: null, handler: null }
+
+    let type = node?.type.prop(NodeTypeProp) ?? null
+    let handler = this.getHandlerFor(type)
+
+    if (this.config._traverseUpwards && !type && !handler && node.parent) {
+      ;({ type, handler } = this.traverse(node.parent, false))
+    }
+
+    if (!handler && root && this.config["*"]) {
+      type = node?.type.prop(NodeTypeProp) ?? null
+      handler = this.config["*"]
+    }
+
+    return { type, handler }
   }
 
   handle(context: CompletionContext) {
     if (!this.handlers.size) return null
 
-    const { state, pos } = context
-    const tree = ensureSyntaxTree(state, pos)
+    const tree = ensureSyntaxTree(context.state, context.pos)
     if (!tree) return null
 
-    const node: SyntaxNode = tree.resolve(pos, -1)
-    const type = node?.type.prop(NodeTypeProp)
-    const handler = this.getHandlerFor(type)
+    const node: SyntaxNode = tree.resolve(context.pos, -1)
+    const { type, handler } = this.traverse(node)
 
     if (!node || !type || !handler) return null
 

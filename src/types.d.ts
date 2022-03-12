@@ -57,6 +57,12 @@ export interface ParserConfiguration {
     /** If true, you can use the emitted names of nodes as autocompletion handlers. */
     _alsoEmitNames?: boolean
 
+    /**
+     * If true, autocomplete will try to be invoked for the entire node
+     * stack at the cursor, rather than just the current node.
+     */
+    _traverseUpwards?: boolean
+
     /** Default autocompletion handler if nothing else can used. */
     "*"?: AutocompleteHandler
 
