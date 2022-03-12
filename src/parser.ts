@@ -318,7 +318,7 @@ export class Parser implements PartialParse {
       if (match) {
         this.state = match.state
         matchTokens = match.compile()
-        length = match.length || 1
+        length = match.length
       }
 
       this.parsedPos = this.region.compensate(pos, length)
