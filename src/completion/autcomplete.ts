@@ -10,9 +10,12 @@ import type { TarnationLanguage } from "../language"
 import type { AutocompleteHandler } from "../types"
 import { TarnationCompletionContext } from "./context"
 
+/** Handles autocompletion for a {@link TarnationLanguage}. */
 export class Autocompleter {
+  /** A map of node names to completion handlers. */
   handlers = new Map<string, AutocompleteHandler>()
 
+  /** @param language - The {@link TarnationLanguage} to provide completions for. */
   constructor(public language: TarnationLanguage) {
     if (this.language.configure.autocomplete) {
       for (const key in this.config) {
@@ -29,16 +32,27 @@ export class Autocompleter {
     }
   }
 
+  /** Configuration for the autocomplete. */
   get config() {
     return this.language.configure.autocomplete!
   }
 
+  /**
+   * Gets a handler via a name,
+   *
+   * @param handler - The name of the handler.
+   */
   private get(handler: string | null | undefined) {
     if (!handler) return null
     if (!this.handlers.has(handler)) return null
     return this.handlers.get(handler)!
   }
 
+  /**
+   * Gets an autocomplete handler for a {@link Node}.
+   *
+   * @param type - The {@link Node} to get a handler for.
+   */
   private getHandlerFor(type: Node | null | undefined) {
     if (!type) return null
 
@@ -51,6 +65,13 @@ export class Autocompleter {
     return handler
   }
 
+  /**
+   * Tries to get an autocomplete handler for a `SyntaxNode`. Will traverse
+   * up the node's parents if allowed to do so in the configuration.
+   *
+   * @param node - The `SyntaxNode` to get a handler for.
+   * @param root - Internal parameter. Defaults to true.
+   */
   private traverse(
     node: SyntaxNode | null | undefined,
     root = true
@@ -81,6 +102,12 @@ export class Autocompleter {
     return { node, type, handler, traversed: false }
   }
 
+  /**
+   * CodeMirror autocompletion handler function. Delegates to autocomplete
+   * handlers defined in the language's configuartion.
+   *
+   * @param context - The `CompletionContext` provided by CodeMirror.
+   */
   handle(context: CompletionContext) {
     if (!this.handlers.size) return null
 
