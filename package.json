@@ -2,7 +2,7 @@
   "name": "cm-tarnation",
   "license": "MPL 2.0",
   "description": "An alternative parser for CodeMirror 6",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "keywords": [
     "wikijump",
     "lezer",
