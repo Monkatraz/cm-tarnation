@@ -79,7 +79,7 @@ export class Grammar {
     return new GrammarState(
       this.variables,
       {},
-      new GrammarStack([{ node: Node.None, rules: this.root, end: null }])
+      new GrammarStack([{ node: Node.None, rules: this.root, end: null, pos: null }])
     )
   }
 

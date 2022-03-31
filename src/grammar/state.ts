@@ -110,9 +110,10 @@ export class GrammarStack {
    * @param rules - The rules to loop parsing with.
    * @param end - A specific {@link Rule} that, when matched, should pop
    *   this element off.
+   * @param pos - The current position in the input.
    */
-  push(node: Node, rules: (Rule | State)[], end: Rule | State) {
-    this.stack.push({ node, rules, end })
+  push(node: Node, rules: (Rule | State)[], end: Rule | State, pos: number) {
+    this.stack.push({ node, rules, end, pos })
   }
 
   /** Pops the last element on the stack. */

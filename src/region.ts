@@ -45,6 +45,9 @@ export class ParseRegion {
   /** The ranges to be parsed. */
   declare ranges: { from: number; to: number }[]
 
+  /** The current viewport of the document, if available. */
+  declare viewport?: { from: number; to: number }
+
   /**
    * @param input - The input to get the parse region for.
    * @param ranges - The ranges of the document that should be parsed.
@@ -53,7 +56,8 @@ export class ParseRegion {
   constructor(
     input: Input,
     ranges: { from: number; to: number }[],
-    fragments?: TreeFragment[]
+    fragments?: TreeFragment[],
+    viewport?: { from: number; to: number }
   ) {
     this.input = input
     this.from = ranges[0].from
@@ -98,6 +102,19 @@ export class ParseRegion {
       }
 
       this.edit = { from, to, offset }
+    }
+
+    if (viewport) {
+      this.viewport = viewport
+
+      // we're gonna try to only parse just a bit past the viweport
+
+      // basically doubles the height of the viewport
+      // this adds a bit of a buffer between the actual end and the end of parsing
+      // otherwise if you scrolled too fast you'd see unparsed sections easily
+      const end = viewport.to + (viewport.to - viewport.from)
+
+      if (viewport.from < this.to && this.to > end) this.to = end
     }
   }
 

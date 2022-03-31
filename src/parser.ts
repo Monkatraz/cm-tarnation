@@ -166,23 +166,13 @@ export class Parser implements PartialParse {
   ) {
     this.measurePerformance = perfy()
     this.language = language
-    this.region = new ParseRegion(input, ranges, fragments)
     this.stoppedAt = null
 
     const context = ParseContext.get()
+    const viewport = context?.viewport ? context.viewport : undefined
 
-    // parse only the viewport
-    if (context?.viewport && context.skipUntilInView!) {
-      const v = context.viewport
-      const r = this.region
+    this.region = new ParseRegion(input, ranges, fragments, viewport)
 
-      // basically doubles the height of the viewport
-      // this adds a bit of a buffer between the actual end and the end of parsing
-      // otherwise if you scrolled too fast you'd see unparsed sections easily
-      const end = v.to + (v.to - v.from)
-
-      if (v.from < r.to && r.to > end) r.to = end
-    }
     // find cached data, if possible
     if (REUSE_LEFT && fragments?.length) {
       for (let idx = 0; idx < fragments.length; idx++) {
@@ -220,7 +210,22 @@ export class Parser implements PartialParse {
 
   /** True if the parser is done. */
   get done() {
-    return this.parsedPos >= this.region.to
+    if (this.parsedPos >= this.region.to) {
+      // we may appear done, but if there are incomplete nodes visible in the viewport,
+      // we'll want to try and finish those before we say we're done
+      if (this.region.viewport && this.parsedPos < this.region.original.to) {
+        for (let i = 0; i < this.state.stack.length; i++) {
+          const start = this.state.stack.stack[i].pos
+          if (start !== null && start < this.region.viewport.to) {
+            console.log("not done", this)
+            return false
+          }
+        }
+      }
+
+      return true
+    }
+    return false
   }
 
   /**
