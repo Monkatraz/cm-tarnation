@@ -298,8 +298,8 @@ export class Parser implements PartialParse {
   private nextChunk() {
     // this condition is a little misleading,
     // as we're actually going to break out when any chunk is emitted.
-    // however, if we're at the "last chunk", this condition catching that
-    while (this.parsedPos < this.region.to) {
+    // however, if we're at the "last chunk", this condition catches that
+    while (this.parsedPos < this.region.original.to) {
       if (REUSE_RIGHT) {
         // try to reuse ahead state
         const reused = this.previousRight && this.tryToReuse(this.previousRight)
