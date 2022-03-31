@@ -124,7 +124,7 @@ export class GrammarStack {
   /**
    * Remove every element at or beyond the index given.
    *
-   * @param index - The index to remove elements at or beyond.
+   * @param idx - The index to remove elements at or beyond.
    */
   close(idx: number) {
     this.stack.splice(idx)
@@ -133,7 +133,7 @@ export class GrammarStack {
   /**
    * Returns if another {@link GrammarStack} is effectively equivalent to this one.
    *
-   * @param equals - The other {@link GrammarStack} to compare to.
+   * @param other - The other {@link GrammarStack} to compare to.
    */
   equals(other: GrammarStack) {
     if (this === other) return true
