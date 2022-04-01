@@ -4,6 +4,9 @@
 
 import type { Input, TreeFragment } from "@lezer/common"
 
+// disabled as it doesn't seem to be needed for performance
+const LIMIT_TO_VIEWPORT = false
+
 /**
  * The region of a document that should be parsed, along with other
  * information such as what the edited range of the document was.
@@ -107,14 +110,16 @@ export class ParseRegion {
     if (viewport) {
       this.viewport = viewport
 
-      // we're gonna try to only parse just a bit past the viweport
+      if (LIMIT_TO_VIEWPORT) {
+        // we're gonna try to only parse just a bit past the viweport
 
-      // basically doubles the height of the viewport
-      // this adds a bit of a buffer between the actual end and the end of parsing
-      // otherwise if you scrolled too fast you'd see unparsed sections easily
-      const end = viewport.to + (viewport.to - viewport.from)
+        // basically doubles the height of the viewport
+        // this adds a bit of a buffer between the actual end and the end of parsing
+        // otherwise if you scrolled too fast you'd see unparsed sections easily
+        const end = viewport.to + (viewport.to - viewport.from)
 
-      if (viewport.from < this.to && this.to > end) this.to = end
+        if (viewport.from < this.to && this.to > end) this.to = end
+      }
     }
   }
 

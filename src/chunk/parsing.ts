@@ -3,9 +3,12 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 import type { BufferCursor } from "@lezer/common"
+import { NodeID } from "../enums"
 import * as Token from "../token"
 import { cloneNestedArray, concatUInt32Arrays } from "../util"
 import type { Chunk } from "./chunk"
+
+const FINISH_INCOMPLETE_NODES = true
 
 /** Stack used by the parser to track tree construction. */
 export type ParseElementStack = [id: number, start: number, children: number][]
@@ -72,7 +75,7 @@ export class ParseStack {
 
             // we need to push the token early
             if (type && !pushed) {
-              emit(buffers, type, from, to, 4)
+              buffers.push(arrtoken(type, from, to, 4))
               this.increment()
               pushed = true
             }
@@ -83,7 +86,7 @@ export class ParseStack {
             const pos = s[1]
             const children = s[2]
 
-            emit(buffers, node, pos, to, children * 4 + 4)
+            buffers.push(arrtoken(node, pos, to, children * 4 + 4))
             this.increment()
           }
         }
@@ -91,7 +94,7 @@ export class ParseStack {
 
       // push the actual token to the buffer, if it hasn't been already
       if (type && !pushed) {
-        emit(buffers, type, from, to, 4)
+        buffers.push(arrtoken(type, from, to, 4))
         this.increment()
       }
     }
@@ -150,19 +153,13 @@ export class ParseStack {
 }
 
 /** Utility function needed because apparently `TypedArray.of` isn't in every browser. */
-function emit(
-  buffer: ArrayBuffer[],
-  type: number,
-  from: number,
-  to: number,
-  children: number
-) {
+function arrtoken(type: number, from: number, to: number, children: number) {
   const arr = new Uint32Array(4)
   arr[0] = type
   arr[1] = from
   arr[2] = to
   arr[3] = children
-  buffer.push(arr)
+  return arr
 }
 
 /**
@@ -170,13 +167,14 @@ function emit(
  * `Tree.build` compatible buffer and a list of "reused" trees for language nesting.
  *
  * @param chunks - The chunks to compile.
- * @param startStack - The stack to use for parsing, if given. Otherwise,
- *   an empty stack will be created.
+ * @param end - The length of the document.
  */
-export function compileChunks(chunks: Chunk[], startStack?: ParseStack) {
+export function compileChunks(chunks: Chunk[], end: number) {
+  if (!chunks.length) return new ArrayBufferCursor(new Uint32Array(0), 0)
+
   const chunkBuffers: Uint32Array[] = []
 
-  let stack = startStack ?? new ParseStack([])
+  let stack = new ParseStack([])
   let shouldCloneStack = false
   let length = 0
 
@@ -201,6 +199,26 @@ export function compileChunks(chunks: Chunk[], startStack?: ParseStack) {
     const buffer = new Uint32Array(tokens)
     length += buffer.length
     chunkBuffers.push(buffer)
+  }
+
+  if (FINISH_INCOMPLETE_NODES) {
+    if (shouldCloneStack) stack = stack.clone()
+    while (stack.stack.length) {
+      // emit an error token
+      chunkBuffers.push(arrtoken(NodeID.ERROR, end, end, 4))
+      stack.increment()
+
+      // finish the last element in the stack
+      const s = stack.pop()!
+      const node = s[0]
+      const pos = s[1]
+      const children = s[2]
+
+      chunkBuffers.push(arrtoken(node, pos, end, children * 4 + 4))
+      stack.increment()
+
+      length += 8
+    }
   }
 
   const buffer = concatUInt32Arrays(chunkBuffers, length)

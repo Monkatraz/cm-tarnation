@@ -239,11 +239,11 @@ export class Parser implements PartialParse {
   }
 
   private finish(): Tree {
-    const cursor = compileChunks(this.buffer.chunks)
-
     const start = this.region.original.from
     const length = this.region.original.length
     const nodeSet = this.language.nodeSet!
+
+    const cursor = compileChunks(this.buffer.chunks, length)
 
     // build tree from buffer
     const tree = Tree.build({
