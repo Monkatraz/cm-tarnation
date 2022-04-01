@@ -312,7 +312,7 @@ export class Parser implements PartialParse {
       const startState = this.state.clone()
 
       let matchTokens: GrammarToken[] | null = null
-      let length = 1
+      let length = 0
 
       const start = Math.max(pos - MARGIN_BEFORE, this.region.from)
       const startCompensated = this.region.compensate(pos, start - pos)
@@ -325,6 +325,11 @@ export class Parser implements PartialParse {
         this.state = match.state
         matchTokens = match.compile()
         length = match.length
+      }
+      // if we didn't match, we'll advance with an error token to prevent getting stuck
+      else {
+        matchTokens = [[NodeID.ERROR, pos, pos + 1]]
+        length = 1
       }
 
       this.parsedPos = this.region.compensate(pos, length)
