@@ -150,20 +150,6 @@ export function createLookbehind(pattern: RegExp, negative?: boolean) {
 export const EmbeddedParserProp = new NodeProp<string>()
 
 /**
- * Clones any array of arrays. Doesn't clone anything in the nested arrays
- * beyond primitives.
- *
- * @param arr - The nested array to clone.
- */
-export function cloneNestedArray<T extends any[][]>(arr: T): T {
-  const clone = new Array(arr.length)
-  for (let idx = 0; idx < arr.length; idx++) {
-    clone[idx] = arr[idx].slice()
-  }
-  return clone as T
-}
-
-/**
  * Returns a completely concatenated `Uint32Array` from a list of arrays.
  *
  * @param arrays - Arrays to concatenate.

@@ -4,8 +4,7 @@
 
 import type { BufferCursor } from "@lezer/common"
 import { NodeID } from "../enums"
-import * as Token from "../token"
-import { cloneNestedArray, concatUInt32Arrays } from "../util"
+import { concatUInt32Arrays } from "../util"
 import type { Chunk } from "./chunk"
 
 const FINISH_INCOMPLETE_NODES = true
@@ -24,7 +23,16 @@ export class ParseStack {
 
   /** @param stack - The stack to use as the starting state, which will be cloned. */
   constructor(stack: ParseElementStack) {
-    this.stack = cloneNestedArray(stack)
+    if (!stack.length) {
+      this.stack = []
+    } else {
+      // hyper-optimized cloning, as this is very much in the hot path
+      const clone = new Array(stack.length)
+      for (let i = 0; i < stack.length; i++) {
+        clone[i] = [stack[i][0], stack[i][1], stack[i][2]]
+      }
+      this.stack = clone
+    }
   }
 
   /**
