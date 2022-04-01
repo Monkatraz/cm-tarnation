@@ -21,7 +21,7 @@ import type { GrammarState } from "./grammar/state"
 import type { TarnationLanguage } from "./language"
 import { ParseRegion } from "./region"
 import type { GrammarToken } from "./types"
-import { canContinue, EmbeddedParserProp, perfy } from "./util"
+import { EmbeddedParserProp, perfy } from "./util"
 
 const DISABLED_NESTED = false
 const REUSE_LEFT = true
@@ -211,22 +211,7 @@ export class Parser implements PartialParse {
 
   /** True if the parser is done. */
   get done() {
-    if (this.parsedPos >= this.region.to) {
-      // we may appear done, but if there are incomplete nodes visible in the viewport,
-      // we'll want to try and finish those before we say we're done
-      if (this.region.viewport && this.parsedPos < this.region.original.to) {
-        for (let i = 0; i < this.state.stack.length; i++) {
-          const start = this.state.stack.stack[i].pos
-          if (start !== null && start < this.region.viewport.to) {
-            console.log("not done", this)
-            return false
-          }
-        }
-      }
-
-      return true
-    }
-    return false
+    return this.parsedPos >= this.region.to
   }
 
   /**
@@ -300,7 +285,7 @@ export class Parser implements PartialParse {
     // this condition is a little misleading,
     // as we're actually going to break out when any chunk is emitted.
     // however, if we're at the "last chunk", this condition catches that
-    while (this.parsedPos < this.region.original.to) {
+    while (this.parsedPos < this.region.to) {
       if (REUSE_RIGHT) {
         // try to reuse ahead state
         const reused = this.previousRight && this.tryToReuse(this.previousRight)

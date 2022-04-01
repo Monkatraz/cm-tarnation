@@ -107,10 +107,10 @@ export class State {
 
       if (this.inside instanceof Node) {
         matched.push(this.inside, 1)
-        state.stack.push(this.node, [], this, pos)
+        state.stack.push(this.node, [], this)
       } else {
         const inside = this.inside ? this.inside : state.stack.rules
-        state.stack.push(this.node, inside, this, pos)
+        state.stack.push(this.node, inside, this)
       }
 
       return matched

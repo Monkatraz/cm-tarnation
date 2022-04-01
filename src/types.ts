@@ -156,12 +156,6 @@ export interface GrammarStackElement {
    * the stack.
    */
   end: Rule | State | null
-  /**
-   * The starting position for this stack element. This actually isn't used
-   * for actual parsing, it's instead a kind of metadata used for
-   * optimization purposes.
-   */
-  pos: number | null
 }
 
 /** Represents how the parser should nest tokens. */
