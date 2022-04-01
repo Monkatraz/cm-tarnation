@@ -15,3 +15,10 @@ export enum Wrapping {
   /** The {@link Node} in this match ends the branch. */
   END
 }
+
+export enum NodeID {
+  NONE,
+  TOP,
+  ERROR,
+  SAFE
+}

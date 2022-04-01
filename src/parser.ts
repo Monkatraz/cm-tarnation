@@ -16,6 +16,7 @@ import {
 } from "@lezer/common"
 import { ChunkBuffer } from "./chunk/buffer"
 import { compileChunks } from "./chunk/parsing"
+import { NodeID } from "./enums"
 import type { GrammarState } from "./grammar/state"
 import type { TarnationLanguage } from "./language"
 import { ParseRegion } from "./region"
@@ -130,7 +131,7 @@ export class Parser implements PartialParse {
   private declare buffer: ChunkBuffer
 
   /**
-   * A buffer containing the stale *ahead* state of the tokenized output.
+   * A buffer containing the stale _ahead_ state of the tokenized output.
    * As in, when a user makes a change, this is all of the tokenization
    * data for the previous document after the location of that new change.
    */
@@ -261,7 +262,7 @@ export class Parser implements PartialParse {
 
     // build tree from buffer
     const tree = Tree.build({
-      topID: this.language.top!.id,
+      topID: NodeID.TOP,
       buffer: cursor,
       nodeSet,
       start,
@@ -361,7 +362,7 @@ export class Parser implements PartialParse {
   }
 
   /**
-   * Tries to reuse a buffer *ahead* of the current position. Returns true
+   * Tries to reuse a buffer _ahead_ of the current position. Returns true
    * if this was successful, otherwise false.
    *
    * @param right - The buffer to try and reuse.

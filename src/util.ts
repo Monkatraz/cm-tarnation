@@ -2,8 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-import { defineLanguageFacet, languageDataProp } from "@codemirror/language"
-import { Input, NodeProp, NodeType } from "@lezer/common"
+import { Input, NodeProp } from "@lezer/common"
 import type { Regex } from "./grammar/definition"
 import type { GrammarToken } from "./types"
 
@@ -163,24 +162,6 @@ export function canContinue(last?: GrammarToken, next?: GrammarToken) {
   if (last[2] !== next[1]) return false
   // tokens are effectively equivalent
   return true
-}
-
-/**
- * Utility for creating a top `NodeType` for a CodeMirror language. Returns
- * both the language's data `Facet` and the `NodeType`.
- *
- * @param name - The name of the language.
- * @param data - The language data.
- */
-export function makeTopNode(name: string, data: Record<string, any>) {
-  const facet = defineLanguageFacet(data)
-  const top = NodeType.define({
-    id: 1,
-    name,
-    top: true,
-    props: [[languageDataProp, facet]]
-  })
-  return { facet, top }
 }
 
 /**

@@ -2,16 +2,23 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-import { Language, LanguageDescription, LanguageSupport } from "@codemirror/language"
+import {
+  defineLanguageFacet,
+  Language,
+  languageDataProp,
+  LanguageDescription,
+  LanguageSupport
+} from "@codemirror/language"
 import type { Extension, Facet } from "@codemirror/state"
 import { NodeProp, NodeSet, NodeType } from "@lezer/common"
 import type { ChunkBuffer } from "./chunk/buffer"
 import { Autocompleter } from "./completion/autcomplete"
+import { NodeID } from "./enums"
 import type * as DF from "./grammar/definition"
 import { Grammar } from "./grammar/grammar"
 import { ParserFactory } from "./parser"
 import type { ParserConfiguration, TarnationLanguageDefinition } from "./types"
-import { makeTopNode, removeUndefined } from "./util"
+import { removeUndefined } from "./util"
 
 /**
  * Tarnation language. Use the `load` method to get the extension needed to
@@ -49,7 +56,10 @@ export class TarnationLanguage {
    * The CodeMirror top node for the language. Requires the language to
    * have been loaded.
    */
-  declare top?: NodeType
+  declare topNode?: NodeType
+
+  /** The special `NodeType` representing "errors" in the parsing. */
+  declare errorNode?: NodeType
 
   /**
    * All of the node types used by the language. Requires the language to
@@ -135,11 +145,21 @@ export class TarnationLanguage {
 
     this.stateProp = new NodeProp<ChunkBuffer>({ perNode: true })
 
-    const { facet, top } = makeTopNode(this.description.name, this.languageData)
-    this.top = top
+    const facet = defineLanguageFacet(this.languageData)
+    this.topNode = NodeType.define({
+      id: NodeID.TOP,
+      name: this.description.name,
+      top: true,
+      props: [[languageDataProp, facet]]
+    })
+
+    this.errorNode = NodeType.define({ name: "⚠️", id: NodeID.ERROR, error: true })
 
     const nodeTypes = this.grammar.repository.nodes().map(n => n.type)
-    nodeTypes.unshift(NodeType.none, top)
+
+    // unshift our special nodes into the list
+    // (NodeType.none always has an ID of 0)
+    nodeTypes.unshift(NodeType.none, this.topNode, this.errorNode)
 
     let nodeSet = new NodeSet(nodeTypes)
 
@@ -154,7 +174,7 @@ export class TarnationLanguage {
     }
 
     // setup language support
-    this.language = new Language(facet, new ParserFactory(this), top)
+    this.language = new Language(facet, new ParserFactory(this), this.topNode)
     this.support = new LanguageSupport(this.language, this.extensions)
     this.loaded = true
 

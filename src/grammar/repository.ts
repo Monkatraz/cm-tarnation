@@ -2,6 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
+import { NodeID } from "../enums"
 import type { VariableTable } from "../types"
 import type * as DF from "./definition"
 import type { Grammar } from "./grammar"
@@ -18,7 +19,7 @@ export class Repository {
   private map = new Map<string, Node | Rule | State>()
 
   /** Current {@link Node} ID. */
-  private curID = 2 // starts at 2, because 0-1 are reserved
+  private curID = NodeID.SAFE
 
   constructor(
     public grammar: Grammar,
