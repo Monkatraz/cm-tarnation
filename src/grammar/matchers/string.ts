@@ -17,7 +17,7 @@ export class StringMatcher implements Matcher {
   private declare cased: boolean
 
   /**
-   * @param src - The source string.
+   * @param str - The source string.
    * @param ignoreCase - If `true`, matches will be case-insensitive.
    * @param variables - A variable table to use when expanding variables.
    */
