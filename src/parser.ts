@@ -332,8 +332,6 @@ export class Parser implements PartialParse {
       const tokens: GrammarToken[] = []
 
       if (matchTokens?.length) {
-        let last!: GrammarToken
-
         for (let idx = 0; idx < matchTokens.length; idx++) {
           const t = matchTokens[idx]
 
@@ -346,9 +344,7 @@ export class Parser implements PartialParse {
             t[2] = end
           }
 
-          // check if the new token can be merged into the last one
-          if (last && canContinue(last, t)) last[2] = t[2]
-          else tokens.push((last = t))
+          tokens.push(t)
         }
       }
 
