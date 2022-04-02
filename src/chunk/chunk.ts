@@ -3,7 +3,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 import type { GrammarState } from "../grammar/state"
-import * as Token from "../token"
+import { Token } from "../token"
 import type { GrammarToken } from "../types"
 import type { ParseStack } from "./parsing"
 
@@ -23,7 +23,7 @@ export class Chunk {
   private declare _max: number
 
   /** The tokens stored in this chunk. */
-  declare tokens: ArrayBuffer[]
+  declare tokens: Token[]
 
   /** State at the start of this chunk. */
   declare state: GrammarState
@@ -82,7 +82,7 @@ export class Chunk {
 
     if (to > this._max) this._max = to
 
-    this.tokens.push(Token.create(token[0], from, to, token[3], token[4]))
+    this.tokens.push(new Token(token[0], from, to, token[3], token[4]))
   }
 
   /**
@@ -116,7 +116,7 @@ export class Chunk {
   /**
    * Determines if a grammar's state (and parse position) is compatible
    * with reusing this node. This is only a safe determination if it is
-   * made *after* the changed range of the document.
+   * made _after_ the changed range of the document.
    *
    * @param state - The state to compare against.
    * @param pos - The position to compare against.

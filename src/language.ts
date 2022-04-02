@@ -178,6 +178,8 @@ export class TarnationLanguage {
     this.support = new LanguageSupport(this.language, this.extensions)
     this.loaded = true
 
+    console.log(this)
+
     return this.support
   }
 }

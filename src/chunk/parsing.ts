@@ -22,8 +22,8 @@ export class ParseStack {
   declare stack: ParseElementStack
 
   /** @param stack - The stack to use as the starting state, which will be cloned. */
-  constructor(stack: ParseElementStack) {
-    if (!stack.length) {
+  constructor(stack?: ParseElementStack) {
+    if (!stack || !stack.length) {
       this.stack = []
     } else {
       // hyper-optimized cloning, as this is very much in the hot path
@@ -47,7 +47,7 @@ export class ParseStack {
     const tokens = chunk.tokens
 
     for (let idx = 0; idx < tokens.length; idx++) {
-      const t = Token.read(tokens[idx], chunk.pos)
+      const t = tokens[idx].read(chunk.pos)
 
       // avoiding destructuring here
 
@@ -182,7 +182,7 @@ export function compileChunks(chunks: Chunk[], end: number) {
 
   const chunkBuffers: Uint32Array[] = []
 
-  let stack = new ParseStack([])
+  let stack = new ParseStack()
   let shouldCloneStack = false
   let length = 0
 
