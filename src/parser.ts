@@ -18,6 +18,7 @@ import { ChunkBuffer } from "./chunk/buffer"
 import { compileChunks } from "./chunk/parsing"
 import {
   DISABLED_NESTED,
+  LIMIT_TO_VIEWPORT,
   MARGIN_AFTER,
   MARGIN_BEFORE,
   NodeID,
@@ -263,16 +264,17 @@ export class Parser implements PartialParse {
     // @ts-ignore
     tree.props = props
 
-    const context = ParseContext.get()
-
-    // inform editor that we skipped everything past the viewport
-    if (
-      context &&
-      !this.stoppedAt &&
-      this.parsedPos > context.viewport.to &&
-      this.parsedPos < this.region.original.to
-    ) {
-      context.skipUntilInView(this.parsedPos, this.region.original.to)
+    if (LIMIT_TO_VIEWPORT) {
+      const context = ParseContext.get()
+      // inform editor that we skipped everything past the viewport
+      if (
+        context &&
+        !this.stoppedAt &&
+        this.parsedPos > context.viewport.to &&
+        this.parsedPos < this.region.original.to
+      ) {
+        context.skipUntilInView(this.parsedPos, this.region.original.to)
+      }
     }
 
     this.performance = this.measurePerformance()
