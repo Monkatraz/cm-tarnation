@@ -2,13 +2,11 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
+import { CHUNK_SIZE } from "../constants"
 import type { GrammarState } from "../grammar/state"
 import type { GrammarToken } from "../types"
 import { search } from "../util"
 import { Chunk } from "./chunk"
-
-/** Number of tokens per chunk. */
-const CHUNK_SIZE = 4
 
 /**
  * A `ChunkBuffer` stores `Chunk` objects that then store the actual tokens

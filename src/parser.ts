@@ -16,18 +16,19 @@ import {
 } from "@lezer/common"
 import { ChunkBuffer } from "./chunk/buffer"
 import { compileChunks } from "./chunk/parsing"
-import { NodeID } from "./enums"
+import {
+  DISABLED_NESTED,
+  MARGIN_AFTER,
+  MARGIN_BEFORE,
+  NodeID,
+  REUSE_LEFT,
+  REUSE_RIGHT
+} from "./constants"
 import type { GrammarState } from "./grammar/state"
 import type { TarnationLanguage } from "./language"
 import { ParseRegion } from "./region"
 import type { GrammarToken } from "./types"
 import { EmbeddedParserProp, perfy } from "./util"
-
-const DISABLED_NESTED = false
-const REUSE_LEFT = true
-const REUSE_RIGHT = true
-const MARGIN_BEFORE = 32
-const MARGIN_AFTER = 128
 
 /**
  * Factory for correctly instantiating {@link Parser} instances. To

@@ -2,7 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-import { NodeID } from "../enums"
+import { NodeID } from "../constants"
 import type { VariableTable } from "../types"
 import type * as DF from "./definition"
 import type { Grammar } from "./grammar"

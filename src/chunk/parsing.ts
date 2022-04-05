@@ -3,11 +3,9 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 import type { BufferCursor } from "@lezer/common"
-import { NodeID } from "../enums"
+import { FINISH_INCOMPLETE_NODES, NodeID } from "../constants"
 import { concatUInt32Arrays } from "../util"
 import type { Chunk } from "./chunk"
-
-const FINISH_INCOMPLETE_NODES = true
 
 /** Stack used by the parser to track tree construction. */
 export type ParseElementStack = [id: number, start: number, children: number][]

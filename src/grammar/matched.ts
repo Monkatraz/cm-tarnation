@@ -2,7 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-import { Wrapping } from "../enums"
+import { Wrapping } from "../constants"
 import type { GrammarToken, MatchOutput } from "../types"
 import { Node } from "./node"
 import type { GrammarState } from "./state"

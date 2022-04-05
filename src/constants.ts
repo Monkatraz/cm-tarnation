@@ -2,11 +2,6 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-export enum Nesting {
-  /** Special value which indicates that a nested region should be ended. */
-  POP
-}
-
 export enum Wrapping {
   /** The {@link Node} in this match contains the entirety of the branch. */
   FULL,
@@ -22,3 +17,21 @@ export enum NodeID {
   ERROR,
   SAFE
 }
+
+/** Number of tokens per chunk. */
+export const CHUNK_SIZE = 4
+
+export const FINISH_INCOMPLETE_NODES = true
+
+export const DISABLED_NESTED = false
+
+export const REUSE_LEFT = true
+
+export const REUSE_RIGHT = true
+
+export const MARGIN_BEFORE = 32
+
+export const MARGIN_AFTER = 128
+
+// disabled as it doesn't seem to be needed for performance
+export const LIMIT_TO_VIEWPORT = false
