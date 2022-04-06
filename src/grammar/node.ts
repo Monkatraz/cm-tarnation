@@ -13,7 +13,8 @@ import {
   TreeIndentContext
 } from "@codemirror/language"
 import type { EditorState } from "@codemirror/state"
-import { NodeProp, NodePropSource, NodeType, SyntaxNode } from "@lezer/common"
+import { NodeProp, NodeType } from "@lezer/common"
+import type { NodePropSource, SyntaxNode } from "@lezer/common"
 import { createID, EmbeddedParserProp, re } from "./../util"
 import type * as DF from "./definition"
 

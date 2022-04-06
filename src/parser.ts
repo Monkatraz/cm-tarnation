@@ -4,16 +4,13 @@
 
 import { LanguageDescription, ParseContext } from "@codemirror/language"
 import {
-  Input,
-  NestedParse,
   parseMixed,
   Parser as CodeMirrorParser,
-  ParseWrapper,
-  PartialParse,
   Tree,
   TreeCursor,
   TreeFragment
 } from "@lezer/common"
+import type { Input, NestedParse, ParseWrapper, PartialParse } from "@lezer/common"
 import { ChunkBuffer } from "./chunk/buffer"
 import { compileChunks } from "./chunk/parsing"
 import type { GrammarState } from "./grammar/state"

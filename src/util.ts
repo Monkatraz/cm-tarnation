@@ -3,7 +3,8 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 import { defineLanguageFacet, languageDataProp } from "@codemirror/language"
-import { Input, NodeProp, NodeType } from "@lezer/common"
+import { NodeProp, NodeType } from "@lezer/common"
+import type { Input } from "@lezer/common"
 import type { Regex } from "./grammar/definition"
 import type { GrammarToken } from "./types"
 
