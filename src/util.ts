@@ -150,13 +150,13 @@ export function createLookbehind(pattern: RegExp, negative?: boolean) {
 export const EmbeddedParserProp = new NodeProp<string>()
 
 /**
- * Returns a completely concatenated `Uint32Array` from a list of arrays.
+ * Returns a completely concatenated `Int32Array` from a list of arrays.
  *
  * @param arrays - Arrays to concatenate.
  * @param length - If you know the length of the final array, you can pass
  *   it here to avoid having the function calculate it.
  */
-export function concatUInt32Arrays(arrays: Uint32Array[], length?: number) {
+export function concatInt32Arrays(arrays: Int32Array[], length?: number) {
   let total = length ?? 0
 
   if (!total) {
@@ -165,7 +165,7 @@ export function concatUInt32Arrays(arrays: Uint32Array[], length?: number) {
     }
   }
 
-  const result = new Uint32Array(total)
+  const result = new Int32Array(total)
 
   let offset = 0
   for (let i = 0; i < arrays.length; i++) {

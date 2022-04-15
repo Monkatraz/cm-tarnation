@@ -2,7 +2,6 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-import { CHUNK_SIZE } from "../constants"
 import type { GrammarState } from "../grammar/state"
 import type { GrammarToken } from "../types"
 import { search } from "../util"
@@ -54,24 +53,39 @@ export class ChunkBuffer {
    * Adds tokens to the buffer, splitting them automatically into chunks.
    * Returns true if a new chunk was created.
    *
-   * @param pos - The position of the first token.
    * @param state - The state to be cached.
-   * @param tokens - The tokens to add to the buffer.
+   * @param token - The token to add to the buffer.
    */
-  add(pos: number, state: GrammarState, tokens: GrammarToken[]) {
-    const chunk =
-      this.last && this.last.tokens.length < CHUNK_SIZE
-        ? this.last
-        : new Chunk(pos, state)
+  add(state: GrammarState, token: GrammarToken) {
+    let pushed = false
 
-    for (let idx = 0; idx < tokens.length; idx++) {
-      chunk.add(tokens[idx])
+    let current = this.chunks[this.chunks.length - 1]
+
+    if (!current) {
+      current = new Chunk(token[1], state)
+      this.chunks.push(current)
+      pushed = true
     }
 
-    if (this.last !== chunk) {
-      this.chunks.push(chunk)
-      return true
+    if (token[3]) {
+      if (current.length !== 0) {
+        current = new Chunk(current.to, state)
+        this.chunks.push(current)
+        pushed = true
+      }
+      current.pushOpen(...token[3])
     }
+
+    current.add(token[0], token[1], token[2])
+
+    if (token[4]) {
+      current.pushClose(...token[4])
+      current = new Chunk(current.to, state)
+      this.chunks.push(current)
+      pushed = true
+    }
+
+    return pushed
   }
 
   /**
@@ -94,7 +108,9 @@ export class ChunkBuffer {
       right = new ChunkBuffer(this.chunks.slice(index + 1))
     }
 
-    if (left.last) left.last = left.last.clone(false)
+    if (left.last) {
+      left.last = new Chunk(left.last.from, left.last.state.clone())
+    }
 
     return { left, right }
   }
@@ -112,14 +128,14 @@ export class ChunkBuffer {
 
     if (this.chunks.length === 0) return this
     if (this.chunks.length === 1) {
-      this.last!.pos += offset
+      this.last!.offset(offset)
       return this
     }
 
     if (cutLeft) this.chunks = this.chunks.slice(index)
 
     for (let idx = cutLeft ? 0 : index; idx < this.chunks.length; idx++) {
-      this.chunks[idx].pos += offset
+      this.chunks[idx].offset(offset)
     }
 
     return this
@@ -136,7 +152,7 @@ export class ChunkBuffer {
     this.chunks = [...this.chunks, ...right.chunks]
     if (max) {
       for (let idx = 0; idx < this.chunks.length; idx++) {
-        if (this.chunks[idx].max > max) {
+        if (this.chunks[idx].to > max) {
           this.chunks = this.chunks.slice(0, idx)
           break
         }
@@ -146,7 +162,8 @@ export class ChunkBuffer {
   }
 
   /** Binary search comparator function. */
-  private searchCmp = ({ pos }: Chunk, target: number) => pos === target || pos - target
+  private searchCmp = ({ from: pos }: Chunk, target: number) =>
+    pos === target || pos - target
 
   /**
    * Searches for the closest chunk to the given position.
@@ -169,10 +186,10 @@ export class ChunkBuffer {
     let chunk = this.chunks[index]
 
     // direct hit or we don't care about sidedness
-    if (chunk.pos === pos || side === 0) return { chunk, index }
+    if (chunk.from === pos || side === 0) return { chunk, index }
 
     // correct for sidedness
-    while (chunk && (side === 1 ? chunk.pos < pos : chunk.pos > pos)) {
+    while (chunk && (side === 1 ? chunk.from < pos : chunk.from > pos)) {
       index = side === 1 ? index + 1 : index - 1
       chunk = this.chunks[index]
     }

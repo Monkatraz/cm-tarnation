@@ -11,9 +11,9 @@ import {
 } from "@codemirror/language"
 import type { Extension, Facet } from "@codemirror/state"
 import { NodeProp, NodeSet, NodeType } from "@lezer/common"
-import type { ChunkBuffer } from "./chunk/buffer"
+import type { ChunkBuffer } from "./compiler/buffer"
 import { Autocompleter } from "./completion/autcomplete"
-import { NodeID } from "./constants"
+import { NodeID, NODE_ERROR_ADVANCE, NODE_ERROR_INCOMPLETE } from "./constants"
 import type * as DF from "./grammar/definition"
 import { Grammar } from "./grammar/grammar"
 import { ParserFactory } from "./parser"
@@ -57,9 +57,6 @@ export class TarnationLanguage {
    * have been loaded.
    */
   declare topNode?: NodeType
-
-  /** The special `NodeType` representing "errors" in the parsing. */
-  declare errorNode?: NodeType
 
   /**
    * All of the node types used by the language. Requires the language to
@@ -153,13 +150,16 @@ export class TarnationLanguage {
       props: [[languageDataProp, facet]]
     })
 
-    this.errorNode = NodeType.define({ name: "⚠️", id: NodeID.ERROR, error: true })
-
     const nodeTypes = this.grammar.repository.nodes().map(n => n.type)
 
     // unshift our special nodes into the list
     // (NodeType.none always has an ID of 0)
-    nodeTypes.unshift(NodeType.none, this.topNode, this.errorNode)
+    nodeTypes.unshift(
+      NodeType.none,
+      this.topNode,
+      NODE_ERROR_ADVANCE,
+      NODE_ERROR_INCOMPLETE
+    )
 
     let nodeSet = new NodeSet(nodeTypes)
 

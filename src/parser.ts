@@ -14,8 +14,8 @@ import {
   TreeCursor,
   TreeFragment
 } from "@lezer/common"
-import { ChunkBuffer } from "./chunk/buffer"
-import { compileChunks } from "./chunk/parsing"
+import { ChunkBuffer } from "./compiler/buffer"
+import { Compiler } from "./compiler/compiler"
 import {
   DISABLED_NESTED,
   LIMIT_TO_VIEWPORT,
@@ -132,6 +132,8 @@ export class Parser implements PartialParse {
   /** {@link Chunk} buffer, where matched tokens are cached. */
   private declare buffer: ChunkBuffer
 
+  private declare compiler: Compiler
+
   /**
    * A buffer containing the stale _ahead_ state of the tokenized output.
    * As in, when a user makes a change, this is all of the tokenization
@@ -194,7 +196,7 @@ export class Parser implements PartialParse {
             // but keep the right side around for reuse as well
             const { left, right } = buffer.split(index)
             this.previousRight = right
-            this.region.from = chunk.pos
+            this.region.from = chunk.from
             this.buffer = left
             this.state = chunk.state.clone()
           }
@@ -209,6 +211,11 @@ export class Parser implements PartialParse {
       this.buffer = new ChunkBuffer()
       this.state = this.language.grammar!.startState()
     }
+
+    this.compiler = new Compiler(this.language, this.buffer)
+
+    // if we reused left, we'll catch the compiler up to the current position
+    if (this.buffer.chunks.length) this.compiler.advanceFully()
   }
 
   /** True if the parser is done. */
@@ -234,6 +241,7 @@ export class Parser implements PartialParse {
     }
 
     this.nextChunk()
+    this.compiler.step()
 
     if (this.done) return this.finish()
 
@@ -243,26 +251,8 @@ export class Parser implements PartialParse {
   private finish(): Tree {
     const start = this.region.original.from
     const length = this.region.original.length
-    const nodeSet = this.language.nodeSet!
 
-    const cursor = compileChunks(this.buffer.chunks, length)
-
-    // build tree from buffer
-    const tree = Tree.build({
-      topID: NodeID.TOP,
-      buffer: cursor,
-      nodeSet,
-      start,
-      length
-    })
-
-    // bit of a hack (private properties)
-    // this is so that we don't need to build another tree
-    const props = Object.create(null)
-    // @ts-ignore
-    props[this.language.stateProp!.id] = this.buffer
-    // @ts-ignore
-    tree.props = props
+    const tree = this.compiler.compile(start, length)
 
     if (LIMIT_TO_VIEWPORT) {
       const context = ParseContext.get()
@@ -316,35 +306,28 @@ export class Parser implements PartialParse {
       }
       // if we didn't match, we'll advance with an error token to prevent getting stuck
       else {
-        matchTokens = [[NodeID.ERROR, pos, pos + 1]]
+        matchTokens = [[NodeID.ERROR_ADVANCE, pos, pos + 1]]
         length = 1
       }
 
       this.parsedPos = this.region.compensate(pos, length)
 
-      const tokens: GrammarToken[] = []
+      let addedChunk = false
 
-      if (matchTokens?.length) {
-        for (let idx = 0; idx < matchTokens.length; idx++) {
-          const t = matchTokens[idx]
+      for (let idx = 0; idx < matchTokens.length; idx++) {
+        const t = matchTokens[idx]
 
-          if (!t[0] && !t[3] && !t[4]) continue
-
-          if (!this.region.contiguous) {
-            const from = this.region.compensate(pos, t[1] - pos)
-            const end = this.region.compensate(pos, t[2] - pos)
-            t[1] = from
-            t[2] = end
-          }
-
-          tokens.push(t)
+        if (!this.region.contiguous) {
+          const from = this.region.compensate(pos, t[1] - pos)
+          const end = this.region.compensate(pos, t[2] - pos)
+          t[1] = from
+          t[2] = end
         }
+
+        if (this.buffer.add(startState, t)) addedChunk = true
       }
 
-      if (tokens?.length) {
-        // if a chunk was added we'll break out of the loop
-        if (this.buffer.add(pos, startState, tokens)) return true
-      }
+      if (addedChunk) return true
     }
 
     return false
@@ -370,7 +353,7 @@ export class Parser implements PartialParse {
         this.buffer.link(right, this.region.original.length)
         this.buffer.ensureLast(this.parsedPos, this.state)
         this.state = this.buffer.last!.state.clone()
-        this.parsedPos = this.buffer.last!.pos
+        this.parsedPos = this.buffer.last!.from
         return true
       }
     }
