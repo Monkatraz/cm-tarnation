@@ -10,6 +10,7 @@ import {
   Parser as CodeMirrorParser,
   ParseWrapper,
   PartialParse,
+  SyntaxNodeRef,
   Tree,
   TreeCursor,
   TreeFragment
@@ -63,12 +64,14 @@ export class ParserFactory extends CodeMirrorParser {
    * Determines which nodes indicate a nested parsing region, and if so,
    * returns a `NestedParser` for said region.
    */
-  private nest(cursor: TreeCursor, input: Input): NestedParse | null {
+  private nest(cursor: SyntaxNodeRef, input: Input): NestedParse | null {
     // don't bother with empty nodes
     if (cursor.from === cursor.to) return null
 
     let name: string | undefined
     let overlay: { from: number; to: number }[] | undefined
+
+    new TreeCursor()
 
     // let's try the configured function first
     if (!name && this.language.configure.nest) {

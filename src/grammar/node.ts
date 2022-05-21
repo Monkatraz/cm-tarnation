@@ -2,7 +2,6 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-import { styleTags, Tag, tags } from "@codemirror/highlight"
 import {
   continuedIndent,
   delimitedIndent,
@@ -14,6 +13,7 @@ import {
 } from "@codemirror/language"
 import type { EditorState } from "@codemirror/state"
 import { NodeProp, NodePropSource, NodeType, SyntaxNode } from "@lezer/common"
+import { styleTags, Tag, tags } from "@lezer/highlight"
 import { createID, EmbeddedParserProp, re } from "./../util"
 import type * as DF from "./definition"
 

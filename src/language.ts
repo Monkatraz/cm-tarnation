@@ -174,7 +174,7 @@ export class TarnationLanguage {
     }
 
     // setup language support
-    this.language = new Language(facet, new ParserFactory(this), this.topNode)
+    this.language = new Language(facet, new ParserFactory(this))
     this.support = new LanguageSupport(this.language, this.extensions)
     this.loaded = true
 

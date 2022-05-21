@@ -2,7 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-import type { Tag as cmTag, tags as cmTags } from "@codemirror/highlight"
+import type { Tag as cmTag, tags as cmTags } from "@lezer/highlight"
 
 /** Filters a record for any properties which are equivalent to a given type. */
 type FilterFor<O extends Record<string, any>, T> = {

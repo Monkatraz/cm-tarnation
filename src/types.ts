@@ -5,7 +5,7 @@
 import type { CompletionSource } from "@codemirror/autocomplete"
 import type { LanguageDescription } from "@codemirror/language"
 import type { Extension, Facet } from "@codemirror/state"
-import type { Input, NodePropSource, TreeCursor } from "@lezer/common"
+import type { Input, NodePropSource, SyntaxNodeRef, TreeCursor } from "@lezer/common"
 import type { TarnationCompletionContext } from "./completion/context"
 import type { Grammar } from "./grammar/definition"
 import type { Node } from "./grammar/node"
@@ -26,7 +26,7 @@ export interface ParserConfiguration {
 
   /**
    * A special function that can be provided for nesting languages. It is
-   * given a node, in the form of a `TreeCursor`, and the document `Input`.
+   * given a node, in the form of a `SyntaxNodeRef`, and the document `Input`.
    * It should return `null` (skip this node) or an object with a `name`
    * string and optionally a list of ranges in the `overlay` property.
    *
@@ -34,7 +34,7 @@ export interface ParserConfiguration {
    * possible, the given language (by name) in the ranges specified.
    */
   nest?: (
-    cursor: TreeCursor,
+    cursor: SyntaxNodeRef,
     input: Input
   ) => null | { name: string; overlay?: { from: number; to: number }[] }
 
