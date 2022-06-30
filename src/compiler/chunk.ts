@@ -7,14 +7,37 @@ import { CHUNK_ARRAY_INTERVAL } from "../constants"
 import type { GrammarState } from "../grammar/state"
 import type { ParserAction } from "../types"
 
+/**
+ * A syntactic chunk of a parsed document. The full syntax tree can be
+ * constructed by stringing these chunks together in a list. They can also
+ * be used to restart a parse from the chunk's starting position.
+ */
 export class Chunk {
+  /** The starting position of the chunk. */
   declare from: number
+
+  /** The ending position of the chunk. */
   declare to: number
+
+  /** The length of the chunk, in characters. */
   declare length: number
+
+  /**
+   * The list of tokens this chunk is made up of. Note that each token is
+   * made up of three elements in the array.
+   */
   declare tokens: Int16Array
+
+  /** The number of tokens in the chunk. */
   declare size: number
+
+  /** The node(s) to open when this chunk starts. `null` if the chunk opens nothing. */
   declare open: ParserAction | null
+
+  /** The node(s) to close when this chunk ends. `null` if the chunk closes nothing. */
   declare close: ParserAction | null
+
+  /** The `GrammarState` at the start of this chunk. */
   declare state: GrammarState
 
   /**
@@ -23,6 +46,10 @@ export class Chunk {
    */
   declare tree?: Tree | null
 
+  /**
+   * @param pos - The starting position.
+   * @param state - The state at the starting position.
+   */
   constructor(pos: number, state: GrammarState) {
     this.from = pos
     this.to = pos
@@ -34,11 +61,23 @@ export class Chunk {
     this.close = null
   }
 
+  /**
+   * Offsets the chunk's starting position.
+   *
+   * @param offset - The offset to add to the chunk's starting position.
+   */
   offset(offset: number) {
     this.from += offset
     this.to = this.from + this.length
   }
 
+  /**
+   * Adds a new token to the chunk.
+   *
+   * @param id - The token ID.
+   * @param from - The starting position of the token.
+   * @param to - The ending position of the token.
+   */
   add(id: number | null, from: number, to: number) {
     this.tree = undefined
 
@@ -67,12 +106,22 @@ export class Chunk {
     }
   }
 
+  /**
+   * Adds a node to open when the chunk starts.
+   *
+   * @param ids - The node ID(s).
+   */
   pushOpen(...ids: number[]) {
     this.tree = undefined
     this.open ??= []
     this.open.push(...ids)
   }
 
+  /**
+   * Adds a node to close when the chunk ends.
+   *
+   * @param ids - The node ID(s).
+   */
   pushClose(...ids: number[]) {
     this.tree = undefined
     this.close ??= []
