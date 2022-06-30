@@ -16,7 +16,12 @@ export class Chunk {
   declare open: ParserAction | null
   declare close: ParserAction | null
   declare state: GrammarState
-  declare tree?: Tree
+
+  /**
+   * {@link Tree} (or buffer) version of this chunk. If `null`, the tree
+   * will not be available, ever, due to the shape of the chunk.
+   */
+  declare tree?: Tree | null
 
   constructor(pos: number, state: GrammarState) {
     this.from = pos
@@ -74,22 +79,40 @@ export class Chunk {
     this.close.push(...ids)
   }
 
-  tryForTree(nodeSet: NodeSet) {
-    if (this.tree) return this.tree
+  /** Checks if the chunk can be converted into a {@link Tree}. */
+  private canConvertToTree() {
+    if (this.tree === null) return false
 
-    if (this.size <= 1) return null
+    if (this.size <= 1) return false
 
     if (this.open || this.close) {
-      if (!(this.open && this.close)) return null
-      if (this.open.length !== this.close.length) return null
+      if (!(this.open && this.close)) return false
+      if (this.open.length !== this.close.length) return false
       const open = this.open.slice().reverse()
       const close = this.close
       for (let i = 0; i < open.length; i++) {
-        if (open[i] !== close[i]) return null
+        if (open[i] !== close[i]) return false
       }
     }
 
-    // if we're here, we can make a tree buffer out of this chunk
+    return true
+  }
+
+  /**
+   * Tries to convert this chunk into a {@link Tree}. If that isn't
+   * possible, this function will return `null` and cache the result. The
+   * cache is invalidated if the chunk changes.
+   *
+   * @param nodeSet - The language node set to use when creating the tree.
+   */
+  tryForTree(nodeSet: NodeSet) {
+    if (this.tree === null) return null
+    if (this.tree) return this.tree
+
+    if (!this.canConvertToTree()) {
+      this.tree = null
+      return null
+    }
 
     const buffer: number[] = []
 
@@ -113,7 +136,7 @@ export class Chunk {
     const tree = new TreeBuffer(new Uint16Array(buffer), this.length, nodeSet)
     this.tree = tree as unknown as Tree
 
-    return tree
+    return tree as unknown as Tree
   }
 
   /**
