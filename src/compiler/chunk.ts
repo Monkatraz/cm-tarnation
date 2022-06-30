@@ -174,10 +174,11 @@ export class Chunk {
     }
 
     for (let i = 0; i < this.size; i++) {
+      const idx = i * 3
       buffer.push(
-        this.tokens[i * 3],
-        this.tokens[i * 3 + 1],
-        this.tokens[i * 3 + 2],
+        this.tokens[idx],
+        this.tokens[idx + 1],
+        this.tokens[idx + 2],
         buffer.length + 4
       )
     }
