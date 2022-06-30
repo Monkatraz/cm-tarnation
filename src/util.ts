@@ -2,7 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-import { Input, NodeProp } from "@lezer/common"
+import type { Input } from "@lezer/common"
 import type { Regex } from "./grammar/definition"
 
 export interface SearchOpts {
@@ -142,12 +142,6 @@ export function createLookbehind(pattern: RegExp, negative?: boolean) {
     return negative ? !result : result
   }
 }
-
-/**
- * A special per-node `NodeProp` used for describing nodes where a nested
- * parser will be embedded.
- */
-export const EmbeddedParserProp = new NodeProp<string>()
 
 /**
  * Returns a completely concatenated `Int32Array` from a list of arrays.

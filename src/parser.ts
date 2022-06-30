@@ -19,6 +19,7 @@ import { ChunkBuffer } from "./compiler/buffer"
 import { Compiler } from "./compiler/compiler"
 import {
   DISABLED_NESTED,
+  embeddedParserProp,
   LIMIT_TO_VIEWPORT,
   MARGIN_AFTER,
   MARGIN_BEFORE,
@@ -30,7 +31,7 @@ import type { GrammarState } from "./grammar/state"
 import type { TarnationLanguage } from "./language"
 import { ParseRegion } from "./region"
 import type { GrammarToken } from "./types"
-import { EmbeddedParserProp, perfy } from "./util"
+import { perfy } from "./util"
 
 /**
  * Factory for correctly instantiating {@link Parser} instances. To
@@ -81,7 +82,7 @@ export class ParserFactory extends CodeMirrorParser {
 
     // didn't work (or didn't exist), try the default
     // get name from the per-node property, use entire node as range
-    if (!name) name = cursor.type.prop(EmbeddedParserProp)
+    if (!name) name = cursor.type.prop(embeddedParserProp)
 
     // nothing found
     if (!name) return null

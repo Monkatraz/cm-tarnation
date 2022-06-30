@@ -4,7 +4,8 @@
 
 import { CompletionContext } from "@codemirror/autocomplete"
 import type { SyntaxNode, Tree } from "@lezer/common"
-import { Node, NodeTypeProp } from "../grammar/node"
+import { nodeTypeProp } from "../constants"
+import type { Node } from "../grammar/node"
 
 /**
  * An extended form of CodeMirror's `CompletionContext` provided to
@@ -96,7 +97,7 @@ export class TarnationCompletionContext extends CompletionContext {
    * @param node - The `SyntaxNode` to get the type from.
    */
   grammarType(node: SyntaxNode | null | undefined) {
-    const type = node?.type.prop(NodeTypeProp)
+    const type = node?.type.prop(nodeTypeProp)
     return type ?? null
   }
 

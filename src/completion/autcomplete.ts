@@ -5,7 +5,8 @@
 import type { CompletionContext } from "@codemirror/autocomplete"
 import { ensureSyntaxTree } from "@codemirror/language"
 import type { SyntaxNode } from "@lezer/common"
-import { Node, NodeTypeProp } from "../grammar/node"
+import { nodeTypeProp } from "../constants"
+import type { Node } from "../grammar/node"
 import type { TarnationLanguage } from "../language"
 import type { AutocompleteHandler } from "../types"
 import { TarnationCompletionContext } from "./context"
@@ -83,7 +84,7 @@ export class Autocompleter {
   } {
     if (!node) return { node: null, type: null, handler: null, traversed: false }
 
-    const type = node?.type.prop(NodeTypeProp) ?? null
+    const type = node?.type.prop(nodeTypeProp) ?? null
     const handler = this.getHandlerFor(type)
 
     if (!type || !handler) {

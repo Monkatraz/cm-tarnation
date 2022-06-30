@@ -14,10 +14,9 @@ import {
 import type { EditorState } from "@codemirror/state"
 import { NodeProp, NodePropSource, NodeType, SyntaxNode } from "@lezer/common"
 import { styleTags, Tag, tags } from "@lezer/highlight"
-import { createID, EmbeddedParserProp, re } from "./../util"
+import { embeddedParserProp, nodeTypeProp } from "../constants"
+import { createID, re } from "./../util"
 import type * as DF from "./definition"
-
-export const NodeTypeProp = new NodeProp<Node>()
 
 /** Effectively a light wrapper around a CodeMirror `NodeType`. */
 export class Node {
@@ -69,12 +68,12 @@ export class Node {
 
     const props: NodePropSource[] = []
 
-    props.push(NodeTypeProp.add({ [emit]: this }))
+    props.push(nodeTypeProp.add({ [emit]: this }))
 
     // prettier-ignore
     {
       if (tag)      props.push(styleTags(parseTag(emit, tag)))
-      if (nest)     props.push(EmbeddedParserProp.add({ [emit]: nest                }))
+      if (nest)     props.push(embeddedParserProp.add({ [emit]: nest                }))
       if (openedBy) props.push(NodeProp.openedBy .add({ [emit]: [openedBy].flat()   }))
       if (closedBy) props.push(NodeProp.closedBy .add({ [emit]: [closedBy].flat()   }))
       if (group)    props.push(NodeProp.group    .add({ [emit]: [group].flat()      }))

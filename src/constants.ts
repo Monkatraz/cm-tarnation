@@ -2,7 +2,8 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-import { NodeType } from "@lezer/common"
+import { NodeProp, NodeType } from "@lezer/common"
+import type { Node } from "./grammar/node"
 
 export enum Wrapping {
   /** The {@link Node} in this match contains the entirety of the branch. */
@@ -55,3 +56,11 @@ export const NODE_ERROR_INCOMPLETE = NodeType.define({
   id: NodeID.ERROR_INCOMPLETE,
   error: true
 })
+
+/**
+ * A special per-node `NodeProp` used for describing nodes where a nested
+ * parser will be embedded.
+ */
+export const embeddedParserProp = new NodeProp<string>()
+
+export const nodeTypeProp = new NodeProp<Node>()
