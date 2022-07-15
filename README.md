@@ -24,6 +24,142 @@ Tarnation's grammar is basically a JSON matching a certain schema. It's designed
 
 TODO
 
+For now, an example of a highly complex grammar using all available features of Tarnation can be found [here](https://github.com/scpwiki/wikijump/tree/develop/web/modules/cm-lang-ftml/src/grammars), in the `ftml.ts` and `ftml.yaml` files. This grammar is used to parse wikitext for the Wikijump project, in the Sheaf editor.
+
+## Demonstration
+
+This is a simplified form of the grammar linked above:
+
+```yaml
+comments:
+  block:
+    open: "[!--"
+    close: "--]"
+
+ignoreCase: true
+
+repository:
+  ws: /[^\S\r\n]/
+  namela: /_?(?:@ws|@BlockEnd|$)/
+
+  BlockComment:
+    match: /(\[!--)([^]+?)(--\])/
+    tag: (...) blockComment
+    fold: offset(3, -3)
+    captures:
+      0: { open: BlockComment }
+      2: { close: BlockComment }
+
+  BlockStart:
+    match: /\[{2}(?![\[/])/
+    tag: squareBracket
+    closedBy: BlockEnd
+
+  BlockStartClosing:
+    match: /\[{2}//
+    tag: squareBracket
+    closedBy: BlockEnd
+
+  BlockEnd:
+    match: /(?!\]{3})\]{2}/
+    tag: squareBracket
+    openedBy: [BlockStart, BlockStartClosing]
+
+  BlockNamePrefix:
+    match: /[*=><](?![*=><])|f>|f</
+    tag: modifier
+
+  BlockNameSuffix:
+    match: "_"
+    lookbehind: '!/\s/'
+    tag: modifier
+
+  BlockLabel:
+    match: /[^\s\]]+/
+    tag: invalid
+
+  BlockNodeArgument:
+    match: /(\S+?)(\s*=\s*)(")((?:[^"]|\\")*)(")/
+    captures:
+      0: { type: BlockNodeArgumentName, tag: special(propertyName) }
+      1: { type: BlockNodeArgumentOperator, tag: definitionOperator }
+      2: { open: BlockNodeArgumentMark, tag: string }
+      3:
+        if: $0
+        matches: style
+        then: { type: CSSAttributes, nest: style-attribute }
+        else: { type: BlockNodeArgumentValue, tag: string }
+      4: { close: BlockNodeArgumentMark, tag: string }
+
+  BlockNameMap:
+    lookup: $var:blk_map # external variable
+    lookahead: /@namela/
+    emit: BlockName
+    tag: tagName
+
+  BlockNameMapElements:
+    # lookup is a list of strings that can be matched
+    lookup: $var:blk_map_el # external variable
+    lookahead: /@namela/
+    emit: BlockName
+    tag: tagName
+
+  # blocks
+
+  BlockNodeMap:
+    emit: BlockNode
+    indent: delimited(]])
+    skip: /\s+/
+    chain:
+      - BlockStart
+      - BlockNamePrefix?
+      - BlockNameMap
+      - BlockNameSuffix?
+      - BlockNodeArgument |* BlockLabel
+      - BlockEnd
+
+  BlockContainerMap:
+    emit: BlockContainer
+    fold: inside
+    begin:
+      type: BlockContainerMapStartNode
+      emit: BlockNode
+      indent: delimited(]])
+      skip: /\s+/
+      chain:
+        - BlockStart
+        - BlockNamePrefix?
+        - BlockNameMapElements
+        - BlockNameSuffix?
+        - BlockNodeArgument |* BlockLabel
+        - BlockEnd
+    end:
+      type: BlockContainerMapEndNode
+      emit: BlockNode
+      indent: delimited(]])
+      skip: /\s+/
+      chain:
+        - BlockStartClosing
+        - BlockNamePrefix?
+        - BlockNameMapElements
+        - BlockNameSuffix?
+        - BlockEnd
+
+includes:
+  blocks:
+    - BlockNodeMap
+    - BlockContainerMap
+
+global:
+  - BlockComment
+
+root:
+  - include: blocks
+```
+
+This grammar can yield syntax highlighting that looks like this:
+![Syntax highlighting](img/demo_syntax_highlighting.png)
+
 ## Contributing
 
 Tarnation is welcome to PRs, issues, etc. If you want to understand how Tarnation works, I made sure to spend a lot of time nicely documenting the source files. It's not all that complicated really. It would help you a lot if you read up on how CodeMirror itself works, though.
